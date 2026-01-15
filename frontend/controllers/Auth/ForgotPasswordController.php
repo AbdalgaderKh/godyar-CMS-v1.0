@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // حتى لو لم يوجد المستخدم، نُرجع نفس الرسالة لتفادي كشف المستخدمين
-        if (!$user || (!empty($user['status']) && $user['status'] !== 'active')) {
+        if (($user === null || $user === false) || (!empty($user['status']) && $user['status'] !== 'active')) {
             $success = 'تم إرسال رابط استعادة كلمة المرور (إن كان البريد مسجلاً لدينا).';
         } else {
             // نتأكد أن جدول password_resets موجود

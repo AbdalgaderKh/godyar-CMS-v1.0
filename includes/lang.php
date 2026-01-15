@@ -1,4 +1,13 @@
 <?php
+
+// --- Hotfix compatibility: regex wrapper expected by some builds ---
+if (!function_exists('gdy_regex_replace')) {
+    function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null) {
+        if ($count === null) return preg_replace($pattern, $replacement, $subject, $limit);
+        return preg_replace($pattern, $replacement, $subject, $limit, $count);
+    }
+}
+
 // /includes/lang.php
 // i18n helper (Frontend + Admin) - Backward compatible + safe defaults
 

@@ -326,7 +326,7 @@ function gdy_get_news_attachments(PDO $pdo, int $newsId): array {
 }
 
 function gdy_delete_news_attachment(PDO $pdo, int $attachmentId, int $newsId): bool {
-    if (!gdy_db_table_exists($pdo, 'news_attachments')) return false;
+    if (gdy_db_table_exists($pdo, 'news_attachments') === false) return false;
     try {
         $stmt = $pdo->prepare("SELECT file_path FROM news_attachments WHERE id = ? AND news_id = ? LIMIT 1");
         $stmt->execute([$attachmentId, $newsId]);

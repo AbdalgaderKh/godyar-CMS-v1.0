@@ -46,7 +46,7 @@ function require_csrf(): void {
     if (!function_exists('verify_csrf_token')) {
         // fallback: accept if session has csrf_token and matches
         $sess = (string)($_SESSION['csrf_token'] ?? '');
-        if ($sess === '' || $token === '' || !hash_equals($sess, $token)) {
+        if ($sess === '' || $token === '' || hash_equals($sess, $token) === false) {
             json_out(['ok'=>false,'error'=>'CSRF'], 403);
         }
         return;
