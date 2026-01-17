@@ -468,10 +468,10 @@ $_gdy_navBaseUrl = rtrim($_gdy_baseUrl, '/') . '/' . trim($_gdy_lang, '/');
           if(el) el.classList.add('active');
         }
 
-        if(/\/saved/.test(path)) actByTab('saved');
-        else if(/\/category\//.test(path) || /\/categories/.test(path)) actByTab('cats');
-        else if(/\/profile\.php/.test(path)) actByTab('profile');
-        else if(/\/login\.php/.test(path) || /\/register\.php/.test(path)) actByTab('login');
+        if(/\/saved\b/.test(path)) actByTab('saved');
+        else if(/\/category\//.test(path) || /\/categories\b/.test(path)) actByTab('cats');
+        else if(/\/profile\.php\b/.test(path)) actByTab('profile');
+        else if(/\/login\.php\b/.test(path) || /\/register\.php\b/.test(path)) actByTab('login');
         else actByTab('home');
       }
 
@@ -792,6 +792,7 @@ $_gdy_navBaseUrl = rtrim($_gdy_baseUrl, '/') . '/' . trim($_gdy_lang, '/');
 <script src="<?= h($baseUrl) ?>/assets/js/pwa.js" defer></script>
 <script src="<?= h($baseUrl) ?>/assets/js/modules/mobile_tabbar.js?v=20260107_5" defer></script>
 <script src="<?= h($baseUrl) ?>/assets/js/modules/mobile_search_overlay.js" defer></script>
+<script src="<?= h($baseUrl) ?>/assets/js/image_fallback.js" defer></script>
 
 <script src="<?= h($baseUrl) ?>/assets/js/ui-enhancements.js" defer></script>
 <script src="<?= h($baseUrl) ?>/assets/js/lazy-images.js" defer></script>
@@ -809,6 +810,5 @@ $_gdy_navBaseUrl = rtrim($_gdy_baseUrl, '/') . '/' . trim($_gdy_lang, '/');
 </div>
 
   <script src="/assets/js/public-interactions.js" defer></script>
-<script src="<?= h($baseUrl) ?>/assets/js/image_fallback.js" defer></script>
 </body>
 </html>

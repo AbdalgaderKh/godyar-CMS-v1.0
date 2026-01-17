@@ -530,7 +530,7 @@ require_once __DIR__ . '/../layout/app_start.php';
                                      alt="<?= h($fileName) ?>"
                                      class="gdy-media-image"
                                      loading="lazy"
-                                     onload="this.style.opacity='1';"
+                                     data-gdy-show-onload="1"
                                      data-img-error="hide-show-next-flex">
                                 <div class="gdy-media-icon" style="display:none;">
                                     <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const previewHtml = item.is_image
             ? `
                 <img src="${fileUrl}" alt="${fileName}" class="gdy-media-image" loading="lazy"
-                     onload="this.style.opacity='1';"
+                     data-gdy-show-onload="1"
                      data-img-error="hide-show-next-flex">
                 <div class="gdy-media-icon" style="display:none;"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></div>
               `

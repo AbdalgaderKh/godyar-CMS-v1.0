@@ -712,7 +712,7 @@ if (!empty($profile['cover'])) $coverUi = $baseUrl . '/' . ltrim((string)$profil
       <div class="cover <?= $coverUi ? 'has-img' : '' ?>" style="<?= $coverUi ? 'background-image:url('.h($coverUi).')' : '' ?>"></div>
       <div class="hero-body">
         <?php if ($avatarUi): ?>
-          <img class="gdy-avatar" src="<?= h($avatarUi) ?>" alt="avatar" onerror="this.style.display='none'">
+          <img class="gdy-avatar" src="<?= h($avatarUi) ?>" alt="avatar" data-gdy-hide-onerror="1">
         <?php else: ?>
           <div class="gdy-avatar-fallback" aria-hidden="true"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg></div>
         <?php endif; ?>

@@ -28,7 +28,12 @@ $title        = $post['title']           ?? '';
 $slug         = $post['slug']            ?? '';
 $body         = $post['content']         ?? ($post['body'] ?? '');
 $excerpt      = $post['excerpt']         ?? ($post['summary'] ?? '');
-$cover        = $post['featured_image']  ?? ($post['image'] ?? '');
+// NOTE:
+// - بعض النسخ تحفظ الصورة في image_path بدل featured_image.
+// - نستخدم ترتيب fallback لضمان عدم كسر العرض.
+$cover        = $post['featured_image']
+    ?? ($post['image_path'] ?? null)
+    ?? ($post['image'] ?? '');
 $categoryName = $post['category_name']   ?? 'أخبار عامة';
 $categorySlug = $post['category_slug']   ?? 'general-news';
 $date         = $post['published_at']    ?? ($post['publish_at'] ?? ($post['created_at'] ?? ''));
@@ -509,15 +514,10 @@ if (is_file($header)) {
                 <?php if ($authorName): ?>
                     <!-- صندوق كاتب المقال -->
                     <div class="article-author-box">
-                        <div class="article-author-avatar">
-                            <?php if ($authorAvatar): ?>
-                                <img src="<?= h($authorAvatar) ?>"
-                                     alt="<?= h($authorName) ?>"
-                                     loading="lazy">
-                            <?php else: ?>
-                                <?= h(mb_substr($authorName, 0, 1, 'UTF-8')) ?>
-                            <?php endif; ?>
-                        </div>
+                        <div class="article-author-avatar" aria-hidden="true"><?php
+                            // Requirement: hide author image everywhere except "كتّاب الرأي".
+                            echo h(mb_substr($authorName, 0, 1, 'UTF-8'));
+                        ?></div>
                         <div class="article-author-meta">
                             <?php if ($authorPageTitle): ?>
                                 <div class="article-author-page-title">
@@ -596,7 +596,7 @@ if (is_file($header)) {
                     <div class="article-cover-inner">
                         <img src="<?= h($coverUrl) ?>"
                              alt="<?= h($title) ?>"
-                             onerror="this.style.display='none';">
+                             data-gdy-hide-onerror="1">
                     </div>
                 </div>
             </div>

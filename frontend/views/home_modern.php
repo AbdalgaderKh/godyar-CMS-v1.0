@@ -2205,12 +2205,12 @@ $nowTime   = date('H:i');
                               <a href="<?= h($opinionAuthorUrl) ?>">
                                 <img src="<?= h($avatarFinal) ?>"
                                      alt="<?= h($opinionAuthorName ?: $title) ?>"
-                                     onerror="this.onerror=null;this.src='<?= h($opinionArticleImage) ?>';">
+                                     data-gdy-fallback-src="<?= h($opinionArticleImage) ?>">
                               </a>
                             <?php else: ?>
                               <img src="<?= h($avatarFinal) ?>"
                                    alt="<?= h($opinionAuthorName ?: $title) ?>"
-                                   onerror="this.onerror=null;this.src='<?= h($opinionArticleImage) ?>';">
+                                   data-gdy-fallback-src="<?= h($opinionArticleImage) ?>">
                             <?php endif; ?>
                           </div>
                         </article>

@@ -1,5 +1,17 @@
 <?php
 // /godyar/frontend/views/trending/content.php
+
+// Normalize image paths so they work on nested routes.
+if (!function_exists('gdy_img_src')) {
+    function gdy_img_src(?string $src): string {
+        $src = trim((string)$src);
+        if ($src === '') return '';
+        if (preg_match('~^(https?:)?//~i', $src)) return $src;
+        if (str_starts_with($src, 'data:')) return $src;
+        if ($src[0] === '/') return $src;
+        return '/' . ltrim($src, '/');
+    }
+}
 ?>
 
 <section aria-label="الأخبار الأكثر تداولاً">
@@ -19,7 +31,7 @@
                 <article class="news-card fade-in">
                     <?php if (!empty($row['featured_image'])): ?>
                         <a href="<?= h($newsUrl($row)) ?>" class="news-thumb">
-                            <img src="<?= h($row['featured_image']) ?>" alt="<?= h($row['title']) ?>">
+	                            <img src="<?= h(gdy_img_src($row['featured_image'] ?? '')) ?>" alt="<?= h($row['title']) ?>">
                         </a>
                     <?php endif; ?>
                     <div class="news-body">

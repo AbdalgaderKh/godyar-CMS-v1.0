@@ -31,7 +31,11 @@ final class TagService
                 return null;
             }
 
-            $sql = 'SELECT id, name, slug, description FROM tags WHERE slug = :slug LIMIT 1';
+            // Some installs do not have `description` on `tags`.
+            $hasDesc = $this->hasColumn('tags', 'description');
+            $sql = $hasDesc
+                ? 'SELECT id, name, slug, description FROM tags WHERE slug = :slug LIMIT 1'
+                : 'SELECT id, name, slug FROM tags WHERE slug = :slug LIMIT 1';
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':slug' => $slug]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;

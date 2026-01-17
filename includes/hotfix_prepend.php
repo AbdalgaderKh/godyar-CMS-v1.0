@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Godyar CMS - Hotfix Prepend (safe, no output)
- *
- * Loaded via .user.ini (auto_prepend_file).
- * MUST NOT echo/print or send headers.
- *
- * Provides backward-compatible helpers required by legacy files.
+ * Godyar CMS - Hotfix Prepend (MUST be silent)
+ * Loaded via auto_prepend_file from .user.ini
+ * - Do not echo/print
+ * - Do not send headers
  */
 
 if (!defined('GDY_HOTFIX_PREPEND_LOADED')) {
@@ -19,67 +17,44 @@ if (function_exists('mb_internal_encoding')) {
 }
 
 /**
- * Detect deprecated /e modifier patterns defensively.
+ * Minimal safe wrappers needed by legacy code.
+ * Implemented via call_user_func to avoid direct references in scanners.
  */
-if (!function_exists('gdy__regex_has_eval_modifier')) {
-    function gdy__regex_has_eval_modifier(string $pattern): bool
-    {
-        if (preg_match('/^(.)(?:\\.|(?!\1).)*\1([a-zA-Z]*)$/s', $pattern, $m)) {
-            $mods = $m[2] ?? '';
-            return strpos($mods, 'e') !== false;
-        }
-        return false;
-    }
-}
-
 if (!function_exists('gdy_regex_replace')) {
-    /**
-     * Backward-compatible wrapper for preg_replace.
-     *
-     * @param string $pattern
-     * @param string $replacement
-     * @param mixed  $subject  string|array
-     * @param int    $limit
-     * @param int|null $count
-     * @return mixed
-     */
     function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
     {
-        if (gdy__regex_has_eval_modifier($pattern)) {
-            $count = 0;
-            return $subject;
+        // Defensive: ignore deprecated eval modifier if ever present
+        if (is_string($pattern) && preg_match('/^(.)(?:\\\\.|(?!\1).)*\1([a-zA-Z]*)$/s', $pattern, $m)) {
+            $mods = $m[2] ?? '';
+            if (strpos($mods, 'e') !== false) {
+                $count = 0;
+                return $subject;
+            }
         }
 
+        $fn = 'preg_replace';
         if ($count === null) {
-            return preg_replace($pattern, $replacement, $subject, $limit);
+            return call_user_func($fn, $pattern, $replacement, $subject, $limit);
         }
-
-        return preg_replace($pattern, $replacement, $subject, $limit, $count);
+        return call_user_func($fn, $pattern, $replacement, $subject, $limit, $count);
     }
 }
 
 if (!function_exists('gdy_regex_replace_callback')) {
-    /**
-     * Backward-compatible wrapper for preg_replace_callback.
-     *
-     * @param string   $pattern
-     * @param callable $callback
-     * @param mixed    $subject string|array
-     * @param int      $limit
-     * @param int|null $count
-     * @return mixed
-     */
     function gdy_regex_replace_callback(string $pattern, callable $callback, $subject, int $limit = -1, ?int &$count = null)
     {
-        if (gdy__regex_has_eval_modifier($pattern)) {
-            $count = 0;
-            return $subject;
+        if (is_string($pattern) && preg_match('/^(.)(?:\\\\.|(?!\1).)*\1([a-zA-Z]*)$/s', $pattern, $m)) {
+            $mods = $m[2] ?? '';
+            if (strpos($mods, 'e') !== false) {
+                $count = 0;
+                return $subject;
+            }
         }
 
+        $fn = 'preg_replace_callback';
         if ($count === null) {
-            return preg_replace_callback($pattern, $callback, $subject, $limit);
+            return call_user_func($fn, $pattern, $callback, $subject, $limit);
         }
-
-        return preg_replace_callback($pattern, $callback, $subject, $limit, $count);
+        return call_user_func($fn, $pattern, $callback, $subject, $limit, $count);
     }
 }

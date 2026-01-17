@@ -11,6 +11,22 @@ if (!function_exists("nf")) {
   }
 }
 
+// Normalize image paths coming from DB (e.g. "uploads/news/x.jpg")
+// so they work on nested routes like /news/id/1.
+if (!function_exists('gdy_img_src')) {
+    function gdy_img_src(?string $src): string {
+        $src = trim((string)$src);
+        if ($src === '') return '';
+
+        // Already absolute / special
+        if (preg_match('~^(https?:)?//~i', $src)) return $src;
+        if (str_starts_with($src, 'data:')) return $src;
+        if ($src[0] === '/') return $src;
+
+        return '/' . ltrim($src, '/');
+    }
+}
+
 
 
 // حساب الأخبار الرئيسية
@@ -320,7 +336,7 @@ if (!function_exists('gdy_youtube_embed_url')) {
                         <a href="<?= h($newsUrl($row)) ?>" style="display:flex;gap:8px;align-items:flex-start;">
                             <?php if (!empty($row['featured_image'])): ?>
                                 <div style="width:52px;height:52px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#e2e8f0;">
-                                    <img src="<?= h($row['featured_image']) ?>" alt="<?= h(nf($row,'title')) ?>" style="width:100%;height:100%;object-fit:cover;">
+								<img src="<?= h(gdy_img_src($row['featured_image'] ?? '')) ?>" alt="<?= h(nf($row,'title')) ?>" style="width:100%;height:100%;object-fit:cover;">
                                 </div>
                             <?php endif; ?>
                             <div style="flex:1;">
@@ -419,7 +435,7 @@ if (!function_exists('gdy_youtube_embed_url')) {
                             <img src="<?= h($thumb) ?>"
                                  alt="<?= h($title) ?>"
                                  style="width: 100%; height: 120px; object-fit: cover;"
-                                 onerror="this.src='<?= h($baseUrl) ?>/assets/images/video-placeholder.jpg';this.onerror=null;">
+                                 data-gdy-fallback-src="<?= h($baseUrl) ?>/assets/images/video-placeholder.jpg">
 
                             <div class="video-overlay" style="
                                 position: absolute;
@@ -561,7 +577,7 @@ if (!function_exists('gdy_youtube_embed_url')) {
                 <article class="news-card fade-in">
                     <?php if (!empty($row['featured_image'])): ?>
                         <a href="<?= h($newsUrl($row)) ?>" class="news-thumb">
-                            <img src="<?= h($row['featured_image']) ?>" alt="<?= h(nf($row,'title')) ?>">
+						<img src="<?= h(gdy_img_src($row['featured_image'] ?? '')) ?>" alt="<?= h(nf($row,'title')) ?>">
                         </a>
                     <?php endif; ?>
                     <div class="news-body">
@@ -632,7 +648,7 @@ if (!function_exists('gdy_youtube_embed_url')) {
                 height: 160px;
                 overflow: hidden;
             ">
-                <img src="<?= h($news['featured_image']) ?>" alt="<?= h(nf($news,'title')) ?>" style="
+				<img src="<?= h(gdy_img_src($news['featured_image'] ?? '')) ?>" alt="<?= h(nf($news,'title')) ?>" style="
                     width: 100%;
                     height: 100%;
                     object-fit: cover;

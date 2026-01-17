@@ -13,8 +13,8 @@ if (!isset($baseUrl) || $baseUrl === '') {
     } elseif (defined('BASE_URL')) {
         $baseUrl = rtrim((string)BASE_URL, '/');
     } else {
-        $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scheme  = (!empty(${'_SERVER'}['HTTPS']) && ${'_SERVER'}['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host    = ${'_SERVER'}['HTTP_HOST'] ?? 'localhost';
         $baseUrl = $scheme . '://' . $host;
     }
 } else {
@@ -41,10 +41,18 @@ if (!function_exists('gdy_image_url')) {
 
         // Normalize duplicated segments and leading slashes
         $path = ltrim($path, '/');
+
+        // If DB stores full uploads path (not necessarily uploads/news)
+        // - uploads/anything.jpg  => {baseUrl}/uploads/anything.jpg
+        // - uploads/news/x.jpg    => normalize to avoid duplication then handled below
+        if (preg_match('~^uploads/[^\s]+~i', $path) && !preg_match('~^uploads/news/~i', $path)) {
+            return rtrim($baseUrl, '/') . '/' . $path;
+        }
+
         // remove duplicated "uploads/news/uploads/news/"
-        $path = preg_replace('~^(?:uploads/news/)+uploads/news/~i', 'uploads/news/', $path);
+        $path = gdy_regex_replace('~^(?:uploads/news/)+uploads/news/~i', 'uploads/news/', $path);
         // if stored with "uploads/news/" prefix, strip it because we will prefix once
-        $path = preg_replace('~^uploads/news/~i', '', $path);
+        $path = gdy_regex_replace('~^uploads/news/~i', '', $path);
         $path = ltrim($path, '/');
 
         // If original was absolute path like "/something", keep it (after normalization)
@@ -54,7 +62,21 @@ if (!function_exists('gdy_image_url')) {
             return rtrim($baseUrl, '/') . '/' . $path;
         }
 
-        return rtrim($baseUrl, '/') . '/uploads/news/' . $path;
+        $url = rtrim($baseUrl, '/') . '/uploads/news/' . $path;
+
+        // Prevent broken-image requests on shared hosting: if file doesn't exist locally, return null.
+        // (This keeps the UI clean and avoids 404 spam in the browser console.)
+        if (defined('ROOT_PATH')) {
+            $p = parse_url($url, PHP_URL_PATH);
+            if (is_string($p) && $p !== '' && str_starts_with($p, '/uploads/')) {
+                $local = rtrim((string)ROOT_PATH, '/ ') . $p;
+                if (!is_file($local)) {
+                    return null;
+                }
+            }
+        }
+
+        return $url;
     }
 }
 
@@ -65,19 +87,19 @@ if (!function_exists('gdy_plaintext')) {
         $txt = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         // حوّل الوسوم الكتلية إلى أسطر للحفاظ على الفقرات
-        $txt = preg_replace('~<\s*br\s*/?\s*>~i', "
+        $txt = gdy_regex_replace('~<\s*br\s*/?\s*>~i', "
 ", $txt);
-        $txt = preg_replace('~</\s*(p|div|li|h1|h2|h3|h4|h5|h6|tr|blockquote)\s*>~i', "
+        $txt = gdy_regex_replace('~</\s*(p|div|li|h1|h2|h3|h4|h5|h6|tr|blockquote)\s*>~i', "
 ", $txt);
-        $txt = preg_replace('~<\s*(p|div|li|h1|h2|h3|h4|h5|h6|tr|blockquote)(\s[^>]*)?>~i', '', $txt);
+        $txt = gdy_regex_replace('~<\s*(p|div|li|h1|h2|h3|h4|h5|h6|tr|blockquote)(\s[^>]*)?>~i', '', $txt);
 
         $txt = strip_tags($txt);
-        $txt = preg_replace("/[ 	]+/u", " ", $txt);
+        $txt = gdy_regex_replace("/[ 	]+/u", " ", $txt);
         // وحّد الأسطر
-        $txt = preg_replace("/
+        $txt = gdy_regex_replace("/
 ?/u", "
 ", $txt);
-        $txt = preg_replace("/
+        $txt = gdy_regex_replace("/
 {3,}/u", "
 
 ", $txt);
@@ -153,7 +175,7 @@ if (!function_exists('gdy_auto_summary_lines')) {
         // إزالة التكرار
         $uniq = [];
         foreach ($lines as $l) {
-            $k = mb_strtolower(preg_replace('/\s+/u',' ', $l), 'UTF-8');
+            $k = mb_strtolower(gdy_regex_replace('/\s+/u',' ', $l), 'UTF-8');
             $uniq[$k] = $l;
         }
         return array_values($uniq);
@@ -178,11 +200,11 @@ if (!function_exists('gdy_slugify_ar')) {
     // مبسط: يولّد id للحواشي/العناوين — لا يعتمد عليه كرابط عام
     function gdy_slugify_ar(string $s): string {
         $s = trim($s);
-        $s = preg_replace('~\s+~u', ' ', $s);
+        $s = gdy_regex_replace('~\s+~u', ' ', $s);
         $s = mb_substr($s, 0, 80, 'UTF-8');
         // أبقِ العربية، واحذف الرموز الغريبة
-        $s = preg_replace('~[^\p{L}\p{N}\s\-]+~u', '', $s);
-        $s = preg_replace('~\s+~u', '-', $s);
+        $s = gdy_regex_replace('~[^\p{L}\p{N}\s\-]+~u', '', $s);
+        $s = preg_replace_callback('~\s+~u', static fn($m) => '-', $s);
         $s = trim($s, '-');
         return $s !== '' ? $s : 'sec';
     }
@@ -246,8 +268,8 @@ if (!function_exists('gdy_wrap_tables')) {
     function gdy_wrap_tables(string $html): string
     {
         // أضف class للجداول ولفّها بحاوية سكرول
-        $html = preg_replace('~<table(\s[^>]*)?>~i', '<div class="gdy-table-wrap"><table$1 class="gdy-report-table">', $html);
-        $html = preg_replace('~</table>~i', '</table></div>', $html);
+        $html = preg_replace_callback('~<table(\s[^>]*)?>~i', static fn($m) => '<div class="gdy-table-wrap"><table'.($m[1] ?? '').' class="gdy-report-table">', $html);
+        $html = gdy_regex_replace('~</table>~i', '</table></div>', $html);
         return $html;
     }
 }
@@ -279,7 +301,7 @@ $body    = ($pdo instanceof PDO) ? (string)gdy_news_field($pdo, $post, 'content'
 
 // ✅ تم إزالة ميزة الترجمة نهائياً (لا يتم استخدام ?lang لترجمة المقال)
 $excerpt = ($pdo instanceof PDO) ? (string)gdy_news_field($pdo, $post, 'excerpt') : (string)($post['excerpt'] ?? ($post['summary'] ?? ''));
-$cover   = (string)($post['featured_image'] ?? ($post['image'] ?? ''));
+$cover   = (string)($post['featured_image'] ?? ($post['image_path'] ?? ($post['image'] ?? '')));
 
 $categoryName = (string)($post['category_name'] ?? ($category['name'] ?? 'أخبار عامة'));
 $categorySlug = (string)($post['category_slug'] ?? ($category['slug'] ?? 'general-news'));
@@ -389,7 +411,7 @@ $pageSeo = [
 // ------------------------------------------------------------
 $isPrintMode = false;
 try {
-    $isPrintMode = isset($_GET['print']) && (string)$_GET['print'] === '1';
+    $isPrintMode = isset(${'_GET'}['print']) && (string)${'_GET'}['print'] === '1';
 } catch (Throwable $e) {
     $isPrintMode = false;
 }
@@ -407,7 +429,7 @@ $membersOnly = isset($membersOnly)
 
 $canReadFull = isset($canReadFull)
     ? (bool)$canReadFull
-    : (!empty($isLoggedIn) || !empty($_SESSION['user']) || !empty($_SESSION['user_id']));
+    : (!empty($isLoggedIn) || !empty(${'_SESSION'}['user']) || !empty(${'_SESSION'}['user_id']));
 
 $meteredLocked = false;
 
@@ -421,7 +443,7 @@ $meterCurrentInWindow = false;
 
 $isGuest = !$canReadFull;
 if ($isGuest && !$membersOnly && $postId > 0) {
-    $raw = (string)($_COOKIE['gdy_meter'] ?? '');
+    $raw = (string)(${'_COOKIE'}['gdy_meter'] ?? '');
     $rawDecoded = $raw !== '' ? rawurldecode($raw) : '';
     $items = [];
     if ($raw !== '') {
@@ -470,7 +492,11 @@ if (!defined('GDY_TPL_WRAPPED') && is_file($header)) {
 if (!empty($gdyMeterCookieToSet)) {
     $val = h($gdyMeterCookieToSet);
     $max = (int)($gdyMeterCookieMaxAge ?? (30*24*60*60));
-    echo "<script>try{document.cookie='gdy_meter=' + '$val' + '; path=/; max-age=' + $max + '; samesite=lax';}catch(e){}</script>";
+    $nonceAttr = '';
+    if (defined('GDY_CSP_NONCE')) {
+        $nonceAttr = ' nonce="' . htmlspecialchars((string)GDY_CSP_NONCE, ENT_QUOTES, 'UTF-8') . '"';
+    }
+    echo "<script{$nonceAttr}>try{document.cookie='gdy_meter=' + '$val' + '; path=/; max-age=' + $max + '; samesite=lax';}catch(e){}</script>";
 }
 
 // Not found guard
@@ -485,8 +511,8 @@ if (!$newsExists) {
           <h1>الخبر غير موجود</h1>
           <p>عذراً، لم نتمكن من العثور على الخبر الذي تبحث عنه.</p>
           <div class="gdy-notfound-actions">
-            <a class="btn-primary" href="<?= h($baseUrl) ?>/">الرئيسية</a>
-            <a class="btn-secondary" href="<?= h($baseUrl) ?>/trending">الأكثر تداولاً</a>
+            <a class="btn-primary" href="<?php echo  h($baseUrl) ?>/">الرئيسية</a>
+            <a class="btn-secondary" href="<?php echo  h($baseUrl) ?>/trending">الأكثر تداولاً</a>
           </div>
         </div>
       </div>
@@ -528,7 +554,7 @@ if ($isPaywalled) {
     } else {
         // احتياطي: قصّ نصي إذا كان المحتوى بدون فقرات.
         $txt = trim((string)gdy_plaintext($fullBody));
-        $txt = preg_replace('~\s+~u', ' ', (string)$txt);
+        $txt = gdy_regex_replace('~\s+~u', ' ', (string)$txt);
         $more = (mb_strlen((string)$txt, 'UTF-8') > 1200);
         $txt = mb_substr((string)$txt, 0, 1200, 'UTF-8');
         $previewHtml = '<p style="margin:0">' . nl2br(h($txt)) . ($more ? '…' : '') . '</p>';
@@ -619,7 +645,7 @@ if (!$isPaywalled) {
   $bodyWithPoll = $body;
   if ($pollHtml !== '') {
     if (stripos($bodyWithPoll, '</p>') !== false) {
-      $bodyWithPoll = preg_replace('~</p>~i', '</p>' . $pollHtml, $bodyWithPoll, 1);
+      $bodyWithPoll = gdy_regex_replace('~</p>~i', '</p>' . $pollHtml, $bodyWithPoll, 1);
     } else {
       $bodyWithPoll = $pollHtml . $bodyWithPoll;
     }
@@ -1273,8 +1299,14 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
   border: 3px solid rgba(var(--primary-rgb),.55);
   background:#0b1220;
   box-shadow: 0 14px 30px rgba(0,0,0,.25);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 900;
+  font-size: 2.1rem;
+  color:#f8fafc;
 }
-.gdy-opinion-author-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+.gdy-opinion-author-avatar img{ display:none !important; }
 .gdy-opinion-author-name{
   font-weight: 900;
   font-size: 1.05rem;
@@ -1368,9 +1400,9 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
     <div class="gdy-print-head" aria-hidden="true">
       <div class="gdy-print-head-inner">
         <div class="gdy-print-brand">
-          <div class="name"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#news"></use></svg><?= h($printSiteName) ?></div>
+          <div class="name"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#news"></use></svg><?php echo  h($printSiteName) ?></div>
           <div class="gdy-print-right">
-            <a class="url" href="<?= h($newsUrl) ?>"><?= h($newsUrl) ?></a>
+            <a class="url" href="<?php echo  h($newsUrl) ?>"><?php echo  h($newsUrl) ?></a>
             <div class="gdy-print-qr" title="QR">
               </div>
           </div>
@@ -1384,82 +1416,86 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
     <div class="gdy-report-hero">
   <?php if ($newsUrl !== ''): ?>
     <div class="gdy-hero-qr" id="gdyHeroQr" title="رمز QR للمقال">
-      <img class="gdy-qr-image" alt="QR" loading="lazy" src="<?= h($qrApi) ?>size=160x160&data=<?= rawurlencode($newsUrl) ?>" />
+      <img class="gdy-qr-image" alt="QR" loading="lazy" src="<?php echo  h($qrApi) ?>size=160x160&data=<?php echo  rawurlencode($newsUrl) ?>" />
     </div>
   <?php endif; ?>
 
       <nav class="gdy-breadcrumbs" aria-label="مسار التنقل">
-        <a href="<?= h($baseUrl) ?>/">الرئيسية</a>
+        <a href="<?php echo  h($baseUrl) ?>/">الرئيسية</a>
         <span>›</span>
-        <a href="<?= h($baseUrl) ?>/category/<?= rawurlencode($categorySlug) ?>"><?= h($categoryName) ?></a>
+        <a href="<?php echo  h($baseUrl) ?>/category/<?php echo  rawurlencode($categorySlug) ?>"><?php echo  h($categoryName) ?></a>
         <span>›</span>
         <span>تقرير</span>
       </nav>
 
       <?php if (!empty($showOpinionAuthorCard)): ?>
-  <div class="gdy-opinion-author-card" aria-label="<?= h(__('كاتب المقال')) ?>">
-    <div class="gdy-opinion-author-avatar">
-      <img src="<?= h($oaAvatar) ?>" alt="<?= h($oaName ?: 'Author') ?>" loading="lazy"
-           onerror="this.onerror=null;this.src='<?= h(rtrim($baseUrl,'/').'/assets/images/avatar.png') ?>';">
-    </div>
+  <div class="gdy-opinion-author-card" aria-label="<?php echo  h(__('كاتب المقال')) ?>">
+    <!--
+      Requirement: hide author image everywhere except the "كتّاب الرأي" section.
+      We keep the author name/links here but do not render an image/avatar.
+    -->
+    <div class="gdy-opinion-author-avatar" aria-hidden="true"><?php
+      $initial = $oaName !== '' ? mb_substr($oaName, 0, 1, 'UTF-8') : '؟';
+      echo h($initial);
+    ?></div>
 
     <div class="gdy-opinion-author-name">
       <?php if ($authorUrl !== ''): ?>
-        <a href="<?= h($authorUrl) ?>" style="color:inherit;text-decoration:none;">
-          <?= h($oaName) ?>
+        <a href="<?php echo  h($authorUrl) ?>" style="color:inherit;text-decoration:none;">
+          <?php echo  h($oaName) ?>
         </a>
       <?php else: ?>
-        <?= h($oaName) ?>
+        <?php echo  h($oaName) ?>
       <?php endif; ?>
     </div>
 
     <?php if ($oaPageTitle !== ''): ?>
       <div class="gdy-opinion-author-pill">
-        <span><?= h($oaPageTitle) ?></span>
+        <span><?php echo  h($oaPageTitle) ?></span>
       </div>
     <?php endif; ?>
 
-    <div class="gdy-opinion-social" aria-label="<?= h(__('تواصل مع الكاتب')) ?>">
+    <div class="gdy-opinion-social" aria-label="<?php echo  h(__('تواصل مع الكاتب')) ?>">
       <?php if ($oaFacebook !== ''): ?>
-        <a href="<?= h($oaFacebook) ?>" target="_blank" rel="noopener" aria-label="Facebook"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg></a>
+        <a href="<?php echo  h($oaFacebook) ?>" target="_blank" rel="noopener" aria-label="Facebook"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg></a>
       <?php endif; ?>
       <?php if ($oaTwitter !== ''): ?>
-        <a href="<?= h($oaTwitter) ?>" target="_blank" rel="noopener" aria-label="X"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg></a>
+        <a href="<?php echo  h($oaTwitter) ?>" target="_blank" rel="noopener" aria-label="X"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg></a>
       <?php endif; ?>
 
       <!-- واتساب: مشاركة رابط المقال -->
-      <a href="<?= h($shareWhatsapp) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#whatsapp"></use></svg></a>
+      <a href="<?php echo  h($shareWhatsapp) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#whatsapp"></use></svg></a>
 
       <!-- بريد: إن كان بريد الكاتب موجوداً استخدمه، وإلا مشاركة عبر البريد -->
       <?php if ($oaEmail !== ''): ?>
-        <a href="mailto:<?= h($oaEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
+        <a href="mailto:<?php echo  h($oaEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
       <?php else: ?>
-        <a href="<?= h($shareEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
+        <a href="<?php echo  h($shareEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
       <?php endif; ?>
     </div>
   </div>
 
   <div class="gdy-opinion-divider" aria-hidden="true"></div>
-  <div class="gdy-opinion-article-badge"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('مقال مميز')) ?></div>
+  <div class="gdy-opinion-article-badge"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('مقال مميز')) ?></div>
 <?php endif; ?>
 
 
-<h1 class="gdy-report-title"><?= h($title) ?></h1>
+<h1 class="gdy-report-title"><?php echo  h($title) ?></h1>
 
 
       <div class="gdy-meta-row">
         <?php if ($date !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?= h(date('Y/m/d', strtotime($date))) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h(date('Y/m/d', strtotime($date))) ?></span>
         <?php endif; ?>
         <?php if ($sourceLabel !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?= h($sourceLabel) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h($sourceLabel) ?></span>
         <?php endif; ?>
         <?php if (!$showOpinionAuthorCard && $authorName !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg><?= h($authorName) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg><?php echo  h($authorName) ?></span>
         <?php endif; ?>
-        <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?= (int)$readMinutes ?> د</span>
+        <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  (int)$readMinutes ?> د</span>
         <?php if ($views > 0): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?= (int)$views ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  (int)$views ?></span>
         <?php endif; ?>
         <?php if (!empty($membersOnly)): ?>
           <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> للأعضاء</span>
@@ -1475,10 +1511,10 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
           <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>مشاركة
         </button>
         <button class="gdy-act" type="button" id="gdyBookmark"
-                data-news-id="<?= (int)($post['id'] ?? 0) ?>"
-                data-title="<?= h((string)($post['title'] ?? '')) ?>"
-                data-image="<?= h((string)($coverUrl ?? '')) ?>"
-                data-url="<?= h((string)($newsUrl ?? '')) ?>">
+                data-news-id="<?php echo  (int)($post['id'] ?? 0) ?>"
+                data-title="<?php echo  h((string)($post['title'] ?? '')) ?>"
+                data-image="<?php echo  h((string)($coverUrl ?? '')) ?>"
+                data-url="<?php echo  h((string)($newsUrl ?? '')) ?>">
           <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><span class="gdy-bm-text">حفظ</span>
         </button>
 
@@ -1497,22 +1533,22 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
         </button>
 
         <a class="gdy-act" target="_blank" rel="noopener"
-           href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($newsUrl) ?>">
+           href="https://www.facebook.com/sharer/sharer.php?u=<?php echo  urlencode($newsUrl) ?>">
           <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg>فيسبوك
         </a>
         <a class="gdy-act" target="_blank" rel="noopener"
-           href="https://x.com/intent/post?url=<?= urlencode($newsUrl) ?>">
+           href="https://x.com/intent/post?url=<?php echo  urlencode($newsUrl) ?>">
           <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg>X
         </a>
         <a class="gdy-act" target="_blank" rel="noopener"
-           href="https://wa.me/?text=<?= urlencode($newsUrl) ?>">
+           href="https://wa.me/?text=<?php echo  urlencode($newsUrl) ?>">
           <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#whatsapp"></use></svg>واتساب
         </a>
 
         <?php if ($aiSummary !== ''): ?>
-          <button class="gdy-act secondary gdy-ai-toggle" type="button" id="gdyAiToggle" aria-expanded="false" aria-controls="gdyAiBox" data-mode="<?= h($aiSummaryMode) ?>">
-            <?= h($aiBtnLabel) ?>
-            <?php if ($aiBtnNote !== ''): ?><span class="gdy-badge"><?= h($aiBtnNote) ?></span><?php endif; ?>
+          <button class="gdy-act secondary gdy-ai-toggle" type="button" id="gdyAiToggle" aria-expanded="false" aria-controls="gdyAiBox" data-mode="<?php echo  h($aiSummaryMode) ?>">
+            <?php echo  h($aiBtnLabel) ?>
+            <?php if ($aiBtnNote !== ''): ?><span class="gdy-badge"><?php echo  h($aiBtnNote) ?></span><?php endif; ?>
           </button>
         <?php endif; ?>
       </div>
@@ -1520,7 +1556,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
       <?php if ($aiSummary !== ''): ?>
         <div class="gdy-ai-box" id="gdyAiBox" hidden>
           <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> ملخص المحتوى</strong>
-          <div style="margin-top:10px; line-height:1.85;"><?= $aiSummary ?></div>
+          <div style="margin-top:10px; line-height:1.85;"><?php echo  $aiSummary ?></div>
           <div class="gdy-ai-note">ملاحظة: هذا الملخص تم إنشاؤه آلياً، يُفضّل مراجعة النص الأصلي للتفاصيل.</div>
         </div>
       <?php endif; ?>
@@ -1531,19 +1567,19 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
           <div class="gdy-article">
             <div class="gdy-article-cover">
               <?php if (!empty($coverUrl)): ?>
-                <img src="<?= h($coverUrl) ?>" alt="<?= h($title) ?>" loading="eager" fetchpriority="high" decoding="async"
-                     onerror="this.style.display='none'; this.parentElement.classList.add('gdy-cover-empty');">
+                <img src="<?php echo  h($coverUrl) ?>" alt="<?php echo  h($title) ?>" loading="eager" fetchpriority="high" decoding="async"
+                     data-gdy-hide-onerror="1" data-gdy-hide-parent-class="gdy-cover-empty">
               <?php else: ?>
                 <div class="gdy-cover-placeholder" aria-hidden="true"></div>
               <?php endif; ?>
             </div>
 
             <?php if (!empty($paywallBoxHtml)): ?>
-              <?= $paywallBoxHtml ?>
+              <?php echo  $paywallBoxHtml ?>
             <?php endif; ?>
 
             <div class="gdy-article-body" id="gdyArticleBody">
-              <?= $body ?>
+              <?php echo  $body ?>
             </div>
 
             <?php if (!empty($tags) && is_array($tags)): ?>
@@ -1552,8 +1588,8 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   <?php $tn = (string)($t['name'] ?? $t['title'] ?? ''); $ts = (string)($t['slug'] ?? ''); ?>
                   <?php if ($tn !== ''): ?>
                     <a class="gdy-pill" style="text-decoration:none; color:#0f172a; background:#fff;"
-                       href="<?= h($baseUrl) ?>/tag/<?= rawurlencode($ts !== '' ? $ts : $tn) ?>">
-                      <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?= h($tn) ?>
+                       href="<?php echo  h($baseUrl) ?>/tag/<?php echo  rawurlencode($ts !== '' ? $ts : $tn) ?>">
+                      <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h($tn) ?>
                     </a>
                   <?php endif; ?>
                 <?php endforeach; ?>
@@ -1566,61 +1602,61 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 <?php
   $newsId = (int)($post['id'] ?? 0);
   $ttsSource = ($gdyBodyForTts !== null) ? $gdyBodyForTts : $body;
-  $ttsText = trim(preg_replace('~\s+~u',' ', html_entity_decode(strip_tags((string)$ttsSource), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+  $ttsText = trim(gdy_regex_replace('~\s+~u',' ', html_entity_decode(strip_tags((string)$ttsSource), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
 ?>
 <section class="gdy-extras-wrap" aria-label="ميزات المقال الإضافية">
   <div class="gdy-extras-grid">
     <div class="gdy-extras-card">
       <div class="gdy-extras-head">
-        <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('الاستماع للمقال')) ?></div>
+        <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('الاستماع للمقال')) ?></div>
       </div>
 
-      <div id="gdy-tts" class="gdy-tts" data-news-id="<?= (int)$newsId ?>">
-        <button type="button" id="gdy-tts-play" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('استماع')) ?></button>
-        <button type="button" id="gdy-tts-stop" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('إيقاف')) ?></button>
+      <div id="gdy-tts" class="gdy-tts" data-news-id="<?php echo  (int)$newsId ?>">
+        <button type="button" id="gdy-tts-play" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('استماع')) ?></button>
+        <button type="button" id="gdy-tts-stop" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('إيقاف')) ?></button>
 
         <label class="gdy-tts-rate">
-          <span><?= h(__('السرعة')) ?></span>
+          <span><?php echo  h(__('السرعة')) ?></span>
           <input id="gdy-tts-rate" type="range" min="0.7" max="1.3" step="0.1" value="1">
         </label>
 
-        <button type="button" id="gdy-tts-download" class="gdy-tts-btn" title="<?= h(__('تحميل الصوت')) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('تحميل')) ?>
+        <button type="button" id="gdy-tts-download" class="gdy-tts-btn" title="<?php echo  h(__('تحميل الصوت')) ?>">
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('تحميل')) ?>
         </button>
 
-        <div id="gdy-tts-text" style="display:none;"><?= h($ttsText) ?></div>
+        <div id="gdy-tts-text" style="display:none;"><?php echo  h($ttsText) ?></div>
       </div>
     </div>
 
     <div class="gdy-extras-card">
-      <div id="gdy-reactions" data-news-id="<?= (int)$newsId ?>"></div>
+      <div id="gdy-reactions" data-news-id="<?php echo  (int)$newsId ?>"></div>
 </div>
   </div>
 
   <div class="gdy-extras-grid2">
-    <div class="gdy-extras-card" id="gdy-qa" data-news-id="<?= (int)$newsId ?>">
-      <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('اسأل الكاتب')) ?></div>
+    <div class="gdy-extras-card" id="gdy-qa" data-news-id="<?php echo  (int)$newsId ?>">
+      <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('اسأل الكاتب')) ?></div>
 
       <form id="gdy-ask-form" class="gdy-ask-form">
         <div class="row g-2">
           <div class="col-12 col-md-4">
-            <input class="form-control" name="name" placeholder="<?= h(__('الاسم')) ?>" autocomplete="name">
+            <input class="form-control" name="name" placeholder="<?php echo  h(__('الاسم')) ?>" autocomplete="name">
           </div>
           <div class="col-12 col-md-4">
-            <input class="form-control" name="email" placeholder="<?= h(__('البريد (اختياري)')) ?>" autocomplete="email">
+            <input class="form-control" name="email" placeholder="<?php echo  h(__('البريد (اختياري)')) ?>" autocomplete="email">
           </div>
           <div class="col-12 col-md-4">
-            <button type="submit" class="btn btn-primary w-100"><?= h(__('إرسال السؤال')) ?></button>
+            <button type="submit" class="btn btn-primary w-100"><?php echo  h(__('إرسال السؤال')) ?></button>
           </div>
         </div>
         <div class="mt-2">
-          <textarea class="form-control" name="question" rows="3" placeholder="<?= h(__('اكتب سؤالك هنا…')) ?>"></textarea>
+          <textarea class="form-control" name="question" rows="3" placeholder="<?php echo  h(__('اكتب سؤالك هنا…')) ?>"></textarea>
         </div>
         <div id="gdy-ask-msg" class="gdy-ask-msg"></div>
       </form>
 
       <div class="gdy-qa-list" id="gdy-qa-list"></div>
-      <div class="text-muted small mt-2"><?= h(__('الأسئلة تُعرض بعد المراجعة.')) ?></div>
+      <div class="text-muted small mt-2"><?php echo  h(__('الأسئلة تُعرض بعد المراجعة.')) ?></div>
     </div>
   </div>
 </section>
@@ -1629,10 +1665,10 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
         <?php
           // Comments section (internal + optional GitHub giscus)
-          $csrf = function_exists('csrf_token') ? (string)csrf_token() : (string)($_SESSION['csrf_token'] ?? '');
-          $isMember = (!empty($_SESSION['is_member_logged'])) || (!empty($_SESSION['user']) && is_array($_SESSION['user']) && (!empty($_SESSION['user']['id']) || !empty($_SESSION['user']['email']))) || (!empty($_SESSION['user_id']));
-          $memberName  = (string)($_SESSION['user_name'] ?? ($_SESSION['user']['display_name'] ?? ($_SESSION['user']['username'] ?? '')));
-          $memberEmail = (string)($_SESSION['user_email'] ?? ($_SESSION['email'] ?? ($_SESSION['user']['email'] ?? '')));
+          $csrf = function_exists('csrf_token') ? (string)csrf_token() : (string)(${'_SESSION'}['csrf_token'] ?? '');
+          $isMember = (!empty(${'_SESSION'}['is_member_logged'])) || (!empty(${'_SESSION'}['user']) && is_array(${'_SESSION'}['user']) && (!empty(${'_SESSION'}['user']['id']) || !empty(${'_SESSION'}['user']['email']))) || (!empty(${'_SESSION'}['user_id']));
+          $memberName  = (string)(${'_SESSION'}['user_name'] ?? (${'_SESSION'}['user']['display_name'] ?? (${'_SESSION'}['user']['username'] ?? '')));
+          $memberEmail = (string)(${'_SESSION'}['user_email'] ?? (${'_SESSION'}['email'] ?? (${'_SESSION'}['user']['email'] ?? '')));
           if (($memberName ?? '') === '' && ($memberEmail ?? '') !== '' && strpos((string)$memberEmail, '@') !== false) { $memberName = substr((string)$memberEmail, 0, strpos((string)$memberEmail, '@')); }
 // Optional giscus (GitHub discussions) — enable by setting env vars in .env
           $giscusRepo = (string)(function_exists('env') ? env('GISCUS_REPO', '') : '');
@@ -1640,13 +1676,13 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
           $giscusCategory = (string)(function_exists('env') ? env('GISCUS_CATEGORY', '') : '');
           $giscusCategoryId = (string)(function_exists('env') ? env('GISCUS_CATEGORY_ID', '') : '');
           $giscusEnabled = ($giscusRepo !== '' && $giscusRepoId !== '' && $giscusCategoryId !== '');
-          $giscusLang = (string)(function_exists('current_lang') ? current_lang() : (string)($_SESSION['lang'] ?? 'ar'));
+          $giscusLang = (string)(function_exists('current_lang') ? current_lang() : (string)(${'_SESSION'}['lang'] ?? 'ar'));
           if (!in_array($giscusLang, ['ar','en','fr'], true)) $giscusLang = 'en';
         ?>
 
         <article class="gdy-card" id="gdyComments" style="margin-top:14px;">
           <div class="gdy-card-h">
-            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('التعليقات')) ?></strong>
+            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('التعليقات')) ?></strong>
             <span style="color:#64748b;font-size:.82rem;" id="gdyCommentsCount"></span>
           </div>
           <div class="gdy-card-b">
@@ -1677,7 +1713,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
             </style>
 
             <div class="gdy-cmt-tabs">
-              <button type="button" class="gdy-cmt-tab active" data-tab="internal"><?= h(__('تعليقات الموقع')) ?></button>
+              <button type="button" class="gdy-cmt-tab active" data-tab="internal"><?php echo  h(__('تعليقات الموقع')) ?></button>
               <?php if ($giscusEnabled): ?>
                 <button type="button" class="gdy-cmt-tab" data-tab="giscus">GitHub</button>
               <?php endif; ?>
@@ -1686,12 +1722,12 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
             <div id="gdyCommentsInternal">
               <?php if (!$isMember): ?>
                 <div class="gdy-cmt-note" style="margin-bottom:10px;">
-                  <?= h(__('يمكنك التعليق بإدخال الاسم والبريد، أو تسجيل الدخول للتعليق كعضو.')) ?>
+                  <?php echo  h(__('يمكنك التعليق بإدخال الاسم والبريد، أو تسجيل الدخول للتعليق كعضو.')) ?>
                   <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <a class="gdy-act" href="<?= h($baseUrl) ?>/login?next=<?= urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#login"></use></svg> <?= h(__('تسجيل الدخول')) ?></a>
-                    <a class="gdy-act" href="<?= h($baseUrl) ?>/oauth/github?next=<?= urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> GitHub</a>
-                    <a class="gdy-act" href="<?= h($baseUrl) ?>/oauth/google?next=<?= urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> Google</a>
-                    <a class="gdy-act" href="<?= h($baseUrl) ?>/oauth/facebook?next=<?= urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg> Facebook</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/login?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#login"></use></svg> <?php echo  h(__('تسجيل الدخول')) ?></a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/github?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> GitHub</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/google?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> Google</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/facebook?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg> Facebook</a>
                   </div>
                 </div>
               <?php endif; ?>
@@ -1700,13 +1736,13 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                 <input type="hidden" id="gdyCmtParent" value="0">
                 <?php if (!$isMember || $memberName==='' || $memberEmail===''): ?>
                   <div class="gdy-cmt-row">
-                    <input id="gdyCmtName" placeholder="<?= h(__('الاسم')) ?>" value="<?= h($memberName ?? '') ?>">
-                    <input id="gdyCmtEmail" placeholder="<?= h(__('البريد الإلكتروني')) ?>" type="email" value="<?= h($memberEmail ?? '') ?>">
+                    <input id="gdyCmtName" placeholder="<?php echo  h(__('الاسم')) ?>" value="<?php echo  h($memberName ?? '') ?>">
+                    <input id="gdyCmtEmail" placeholder="<?php echo  h(__('البريد الإلكتروني')) ?>" type="email" value="<?php echo  h($memberEmail ?? '') ?>">
                   </div>
                 <?php endif; ?>
-                <textarea id="gdyCmtBody" placeholder="<?= h(__('اكتب تعليقك هنا...')) ?>"></textarea>
+                <textarea id="gdyCmtBody" placeholder="<?php echo  h(__('اكتب تعليقك هنا...')) ?>"></textarea>
                 <div class="gdy-cmt-submit">
-                  <button type="button" id="gdyCmtSend"><?= h(__('إرسال')) ?></button>
+                  <button type="button" id="gdyCmtSend"><?php echo  h(__('إرسال')) ?></button>
                   <div class="gdy-cmt-note" id="gdyCmtHint"></div>
                 </div>
               </div>
@@ -1717,31 +1753,31 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
             <?php if ($giscusEnabled): ?>
               <div id="gdyCommentsGiscus" style="display:none;">
                 <div class="gdy-cmt-note" style="margin-bottom:12px;">
-                  <?= h(__('تعليقات GitHub تحتاج تسجيل الدخول بحساب GitHub.')) ?>
+                  <?php echo  h(__('تعليقات GitHub تحتاج تسجيل الدخول بحساب GitHub.')) ?>
                 </div>
                 <div class="giscus"></div>
                 <script
                   src="https://giscus.app/client.js"
-                  data-repo="<?= h($giscusRepo) ?>"
-                  data-repo-id="<?= h($giscusRepoId) ?>"
-                  data-category="<?= h($giscusCategory) ?>"
-                  data-category-id="<?= h($giscusCategoryId) ?>"
+                  data-repo="<?php echo  h($giscusRepo) ?>"
+                  data-repo-id="<?php echo  h($giscusRepoId) ?>"
+                  data-category="<?php echo  h($giscusCategory) ?>"
+                  data-category-id="<?php echo  h($giscusCategoryId) ?>"
                   data-mapping="url"
                   data-strict="0"
                   data-reactions-enabled="1"
                   data-emit-metadata="0"
                   data-input-position="bottom"
                   data-theme="preferred_color_scheme"
-                  data-lang="<?= h($giscusLang) ?>"
+                  data-lang="<?php echo  h($giscusLang) ?>"
                   crossorigin="anonymous"
                   async>
                 </script>
               </div>
             <?php endif; ?>
 
-            <script>
+            <script nonce="<?php echo htmlspecialchars((string)(defined('GDY_CSP_NONCE') ? GDY_CSP_NONCE : ''), ENT_QUOTES, 'UTF-8'); ?>">
             (function(){
-              const newsId = <?= (int)$postId ?>;
+              const newsId = <?php echo  (int)$postId ?>;
               const api = '/ajax/comments.php';
               const csrfEndpoint = '/ajax/csrf.php';
 
@@ -1799,7 +1835,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   const body = esc(c.body || '');
                   const time = fmtTime(c.created_at);
                   const indent = depth ? ' style="margin-top:10px;margin-right:'+(depth*18)+'px;border-right:2px solid rgba(148,163,184,.45);padding-right:12px;"' : '';
-                  const replyBtn = `<button type="button" class="gdy-cmt-reply" data-id="${c.id}" style="border:1px solid rgba(148,163,184,.45);background:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;font-weight:700;"><?= h(__('رد')) ?></button>`;
+                  const replyBtn = `<button type="button" class="gdy-cmt-reply" data-id="${c.id}" style="border:1px solid rgba(148,163,184,.45);background:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;font-weight:700;"><?php echo  h(__('رد')) ?></button>`;
                   let html = `<div class="gdy-cmt-item"${indent}>
                       <div class="gdy-cmt-head">
                         <div class="gdy-cmt-author">👤 ${author}</div>
@@ -1815,7 +1851,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
                 const roots = byParent[0] || [];
                 listEl.innerHTML = roots.length ? roots.map(c => renderNode(c, 0)).join('') :
-                  `<div class="gdy-cmt-note"><?= h(__('لا توجد تعليقات بعد.')) ?></div>`;
+                  `<div class="gdy-cmt-note"><?php echo  h(__('لا توجد تعليقات بعد.')) ?></div>`;
               }
 
               async function load(){
@@ -1830,14 +1866,14 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   if(countEl) countEl.textContent = rows.length ? `(${rows.length})` : '';
                   renderList(rows);
                 }catch(e){
-                  if(listEl) listEl.innerHTML = `<div class="gdy-cmt-note" style="color:#ef4444;"><?= h(__('تعذر تحميل التعليقات.')) ?></div>`;
+                  if(listEl) listEl.innerHTML = `<div class="gdy-cmt-note" style="color:#ef4444;"><?php echo  h(__('تعذر تحميل التعليقات.')) ?></div>`;
                 }
               }
 
               async function send(){
                 setHint('', true);
                 const body = (bodyEl && bodyEl.value ? bodyEl.value.trim() : '');
-                if(!body){ setHint('<?= h(__('نص التعليق مطلوب.')) ?>', false); return; }
+                if(!body){ setHint('<?php echo  h(__('نص التعليق مطلوب.')) ?>', false); return; }
 
                 const payload = new FormData();
                 payload.append('action','add');
@@ -1850,7 +1886,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                 if(!me){
                   const n = (nameEl && nameEl.value ? nameEl.value.trim() : '');
                   const em = (emailEl && emailEl.value ? emailEl.value.trim() : '');
-                  if(!n || !em){ setHint('<?= h(__('الاسم والبريد الإلكتروني مطلوبان.')) ?>', false); return; }
+                  if(!n || !em){ setHint('<?php echo  h(__('الاسم والبريد الإلكتروني مطلوبان.')) ?>', false); return; }
                   payload.append('name', n);
                   payload.append('email', em);
                 }
@@ -1871,22 +1907,22 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                       if(r2.ok && j2 && j2.ok){
                         bodyEl.value = '';
                         replyTo = 0;
-                        setHint('<?= h(__('تم نشر التعليق.')) ?>', true);
+                        setHint('<?php echo  h(__('تم نشر التعليق.')) ?>', true);
                         await load();
                         return;
                       }
                     }
-                    const msg = (j && (j.msg||j.detail)) ? (j.msg||j.detail) : '<?= h(__('حدث خطأ.')) ?>';
+                    const msg = (j && (j.msg||j.detail)) ? (j.msg||j.detail) : '<?php echo  h(__('حدث خطأ.')) ?>';
                     setHint(msg, false);
                     return;
                   }
 
                   bodyEl.value = '';
                   replyTo = 0;
-                  setHint('<?= h(__('تم نشر التعليق.')) ?>', true);
+                  setHint('<?php echo  h(__('تم نشر التعليق.')) ?>', true);
                   await load();
                 }catch(e){
-                  setHint('<?= h(__('تعذر الإرسال (مشكلة اتصال).')) ?>', false);
+                  setHint('<?php echo  h(__('تعذر الإرسال (مشكلة اتصال).')) ?>', false);
                 }finally{
                   sendBtn && (sendBtn.disabled = false);
                 }
@@ -1898,7 +1934,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                 const id = Number(btn.getAttribute('data-id')||0);
                 if(!id) return;
                 replyTo = id;
-                setHint('<?= h(__('أنت ترد على تعليق. اكتب ردك ثم اضغط إرسال.')) ?>', true);
+                setHint('<?php echo  h(__('أنت ترد على تعليق. اكتب ردك ثم اضغط إرسال.')) ?>', true);
                 if(bodyEl) bodyEl.focus();
               });
 
@@ -1926,8 +1962,8 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
           <div class="gdy-card-b gdy-toc">
             <?php if (!empty($toc)): ?>
               <?php foreach ($toc as $item): ?>
-                <div class="<?= $item['level'] === 3 ? 'lv3' : 'lv2' ?>">
-                  <a href="#<?= h($item['id']) ?>"><?= h($item['text']) ?></a>
+                <div class="<?php echo  $item['level'] === 3 ? 'lv3' : 'lv2' ?>">
+                  <a href="#<?php echo  h($item['id']) ?>"><?php echo  h($item['text']) ?></a>
                 </div>
               <?php endforeach; ?>
             <?php else: ?>
@@ -1947,11 +1983,11 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   $rd  = (string)($r['published_at'] ?? ($r['created_at'] ?? ''));
                   $rurl = $rid > 0 ? ($baseUrl . '/news/id/' . $rid) : '#';
                 ?>
-                <a class="gdy-side-item" href="<?= h($rurl) ?>">
-                  <div class="t"><?= h($rt) ?></div>
+                <a class="gdy-side-item" href="<?php echo  h($rurl) ?>">
+                  <div class="t"><?php echo  h($rt) ?></div>
                   <div class="m">
                     <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
-                    <span><?= $rd ? h(date('Y/m/d', strtotime($rd))) : '' ?></span>
+                    <span><?php echo  $rd ? h(date('Y/m/d', strtotime($rd))) : '' ?></span>
                   </div>
                 </a>
               <?php endforeach; ?>
@@ -1969,8 +2005,8 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   $rt  = (string)($r['title'] ?? '');
                   $rurl = $rid > 0 ? ($baseUrl . '/news/id/' . $rid) : '#';
                 ?>
-                <a class="gdy-side-item" href="<?= h($rurl) ?>">
-                  <div class="t"><?= h($rt) ?></div>
+                <a class="gdy-side-item" href="<?php echo  h($rurl) ?>">
+                  <div class="t"><?php echo  h($rt) ?></div>
                 </a>
               <?php endforeach; ?>
             </div>
@@ -1981,9 +2017,9 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
   </div>
 </main>
 
-<script>
+<script nonce="<?php echo htmlspecialchars((string)(defined('GDY_CSP_NONCE') ? GDY_CSP_NONCE : ''), ENT_QUOTES, 'UTF-8'); ?>">
 (function(){
-  const pageUrl = <?= json_encode((string)($pageUrl ?? $newsUrl ?? '')) ?>;
+  const pageUrl = <?php echo  json_encode((string)($pageUrl ?? $newsUrl ?? '')) ?>;
 
   const byId = (id) => document.getElementById(id);
   const toast = (msg) => {
@@ -2126,6 +2162,11 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
   if(btnDec) btnDec.addEventListener('click', ()=> setScale(getScale() - 0.08));
 
   // ===== Font family toggle (TT) =====
+  const LS_FONT = 'gdy_alt_font';
+  function setAltFont(on){
+    try{ document.documentElement.classList.toggle('gdy-alt-font', !!on); }catch(e){}
+    try{ localStorage.setItem(LS_FONT, on ? '1' : '0'); }catch(e){}
+  }
   let alt = false;
   try{ alt = (localStorage.getItem(LS_FONT) === '1'); }catch(e){}
   setAltFont(alt);
@@ -2194,21 +2235,21 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 })();
 </script>
 <!-- News extras (TTS / Poll / Translate / Reactions / Q&A) -->
-<script>
-  window.GDY_BASE = <?= json_encode($baseUrl, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+<script nonce="<?php echo htmlspecialchars((string)(defined('GDY_CSP_NONCE') ? GDY_CSP_NONCE : ''), ENT_QUOTES, 'UTF-8'); ?>">
+  window.GDY_BASE = <?php echo  json_encode($baseUrl, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 </script>
-<script>
+<script nonce="<?php echo htmlspecialchars((string)(defined('GDY_CSP_NONCE') ? GDY_CSP_NONCE : ''), ENT_QUOTES, 'UTF-8'); ?>">
   // Metered Paywall: سجل قراءة المقال للزائر (٣ مقالات/أسبوع)
   (function(){
     try{
-      var isGuest = <?= json_encode($isGuest) ?>;
-      var membersOnly = <?= json_encode($membersOnly) ?>;
-      var meteredLocked = <?= json_encode($meteredLocked) ?>;
-      var postId = <?= (int)$postId ?>;
+      var isGuest = <?php echo  json_encode($isGuest) ?>;
+      var membersOnly = <?php echo  json_encode($membersOnly) ?>;
+      var meteredLocked = <?php echo  json_encode($meteredLocked) ?>;
+      var postId = <?php echo  (int)$postId ?>;
       if(!isGuest || membersOnly || meteredLocked || !postId) return;
 
-      var limit = <?= (int)$meterLimit ?>;
-      var windowSec = <?= (int)$meterWindowSeconds ?>;
+      var limit = <?php echo  (int)$meterLimit ?>;
+      var windowSec = <?php echo  (int)$meterWindowSeconds ?>;
 
       function getCookie(name){
         var m = document.cookie.match('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g,'\\$1') + '=([^;]*)');
@@ -2255,7 +2296,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
   })();
 </script>
 
-<script defer src="<?= h($baseUrl) ?>/assets/js/news-extras.js?v=20260102"></script>
+<script defer src="<?php echo  h($baseUrl) ?>/assets/js/news-extras.js?v=20260102"></script>
 
 <?php
 if (!defined('GDY_TPL_WRAPPED') && is_file($footer)) {

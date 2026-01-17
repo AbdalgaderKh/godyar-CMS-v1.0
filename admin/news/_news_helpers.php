@@ -101,20 +101,37 @@ function gdy_db_columns(PDO $pdo, string $table): array {
     $key = spl_object_id($pdo) . ':' . $table;
     if (isset($cache[$key])) return $cache[$key];
 
+    // IMPORTANT:
+    // The admin/news module expects an associative map of existing columns:
+    //   [ 'column_name' => true, ... ]
+    // Older helpers return a numeric list of column names; that breaks checks like:
+    //   isset($cols['content'])
+    // and leads to NULL inserts (title only, missing category/image, etc.).
+    // We normalize to an associative map here.
+
     // Prefer shared helper (supports MySQL/PostgreSQL)
     if (function_exists('db_table_columns')) {
-        $cache[$key] = db_table_columns($pdo, $table);
+        $list = db_table_columns($pdo, $table);
+        $out = [];
+        foreach (($list ?: []) as $c) {
+            $c = trim((string)$c);
+            if ($c === '') continue;
+            $out[$c] = true;
+        }
+        $cache[$key] = $out;
         return $cache[$key];
     }
 
     // Fallback (legacy MySQL)
     $st = gdy_db_stmt_columns($pdo, $table);
-    $cols = [];
+    $out = [];
     while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
-        $cols[] = $row['Field'];
+        $c = trim((string)($row['Field'] ?? ''));
+        if ($c === '') continue;
+        $out[$c] = true;
     }
-    $cache[$key] = $cols;
-    return $cols;
+    $cache[$key] = $out;
+    return $cache[$key];
 }
 
 

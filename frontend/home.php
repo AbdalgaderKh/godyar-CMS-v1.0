@@ -571,7 +571,7 @@ $renderOpinionAuthorsBlock = function () use (
                     <a href="<?= h($authorUrl) ?>" class="hm-opinion-author-avatar">
                         <img src="<?= h($avatar) ?>"
                              alt="<?= h($name) ?>"
-                             onerror="this.src='<?= h($authorImageDefault) ?>';this.onerror=null;">
+                             data-gdy-fallback-src="<?= h($authorImageDefault) ?>">
                     </a>
                     <div class="hm-opinion-author-body">
                         <div class="hm-opinion-author-name">

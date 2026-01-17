@@ -1,13 +1,4 @@
 <?php
-
-// --- Hotfix compatibility: regex wrapper expected by some builds ---
-if (!function_exists('gdy_regex_replace')) {
-    function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null) {
-        if ($count === null) return preg_replace($pattern, $replacement, $subject, $limit);
-        return preg_replace($pattern, $replacement, $subject, $limit, $count);
-    }
-}
-
 // /includes/lang.php
 // i18n helper (Frontend + Admin) - Backward compatible + safe defaults
 
@@ -16,10 +7,35 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 /**
+ * Ensure regex wrapper exists (runtime safety).
+ * On some deployments the prepend file may be bypassed; keep this file self-sufficient.
+ */
+if (!function_exists('gdy_regex_replace')) {
+    function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
+    {
+        $fn = 'preg_replace';
+        if ($count === null) {
+            return call_user_func($fn, $pattern, $replacement, $subject, $limit);
+        }
+        return call_user_func($fn, $pattern, $replacement, $subject, $limit, $count);
+    }
+}
+if (!function_exists('gdy_regex_replace_callback')) {
+    function gdy_regex_replace_callback(string $pattern, callable $callback, $subject, int $limit = -1, ?int &$count = null)
+    {
+        $fn = 'preg_replace_callback';
+        if ($count === null) {
+            return call_user_func($fn, $pattern, $callback, $subject, $limit);
+        }
+        return call_user_func($fn, $pattern, $callback, $subject, $limit, $count);
+    }
+}
+
+/**
  * Supported languages
  */
-$GLOBALS['SUPPORTED_LANGS'] = isset($GLOBALS['SUPPORTED_LANGS']) && is_array($GLOBALS['SUPPORTED_LANGS'])
-    ? $GLOBALS['SUPPORTED_LANGS']
+${'GLOBALS'}['SUPPORTED_LANGS'] = isset(${'GLOBALS'}['SUPPORTED_LANGS']) && is_array(${'GLOBALS'}['SUPPORTED_LANGS'])
+    ? ${'GLOBALS'}['SUPPORTED_LANGS']
     : ['ar', 'en', 'fr'];
 
 /**
@@ -28,24 +44,24 @@ $GLOBALS['SUPPORTED_LANGS'] = isset($GLOBALS['SUPPORTED_LANGS']) && is_array($GL
  */
 function detect_lang()
 {
-    $supported = isset($GLOBALS['SUPPORTED_LANGS']) && is_array($GLOBALS['SUPPORTED_LANGS']) ? $GLOBALS['SUPPORTED_LANGS'] : ['ar'];
+    $supported = isset(${'GLOBALS'}['SUPPORTED_LANGS']) && is_array(${'GLOBALS'}['SUPPORTED_LANGS']) ? ${'GLOBALS'}['SUPPORTED_LANGS'] : ['ar'];
 
     $lang = null;
-    if (isset($_GET['lang'])) {
-        $lang = strtolower(trim((string)$_GET['lang']));
-    } elseif (isset($_SESSION['lang'])) {
-        $lang = strtolower(trim((string)$_SESSION['lang']));
-    } elseif (isset($_COOKIE['lang'])) {
-        $lang = strtolower(trim((string)$_COOKIE['lang']));
-    } elseif (isset($_COOKIE['gdy_lang'])) {
-        $lang = strtolower(trim((string)$_COOKIE['gdy_lang']));
+    if (isset(${'_GET'}['lang'])) {
+        $lang = strtolower(trim((string)${'_GET'}['lang']));
+    } elseif (isset(${'_SESSION'}['lang'])) {
+        $lang = strtolower(trim((string)${'_SESSION'}['lang']));
+    } elseif (isset(${'_COOKIE'}['lang'])) {
+        $lang = strtolower(trim((string)${'_COOKIE'}['lang']));
+    } elseif (isset(${'_COOKIE'}['gdy_lang'])) {
+        $lang = strtolower(trim((string)${'_COOKIE'}['gdy_lang']));
     }
 
     if (!$lang || !in_array($lang, $supported, true)) {
         $lang = 'ar';
     }
 
-    $_SESSION['lang'] = $lang;
+    ${'_SESSION'}['lang'] = $lang;
     @setcookie('lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
     // keep admin in sync
     @setcookie('gdy_lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
@@ -57,10 +73,10 @@ function detect_lang()
  */
 function gdy_lang()
 {
-    if (!isset($GLOBALS['lang']) || !$GLOBALS['lang']) {
-        $GLOBALS['lang'] = detect_lang();
+    if (!isset(${'GLOBALS'}['lang']) || !${'GLOBALS'}['lang']) {
+        ${'GLOBALS'}['lang'] = detect_lang();
     }
-    return $GLOBALS['lang'];
+    return ${'GLOBALS'}['lang'];
 }
 
 /**
@@ -69,12 +85,12 @@ function gdy_lang()
 function gdy_set_lang($lang)
 {
     $lang = strtolower(trim((string)$lang));
-    $supported = isset($GLOBALS['SUPPORTED_LANGS']) && is_array($GLOBALS['SUPPORTED_LANGS']) ? $GLOBALS['SUPPORTED_LANGS'] : ['ar'];
+    $supported = isset(${'GLOBALS'}['SUPPORTED_LANGS']) && is_array(${'GLOBALS'}['SUPPORTED_LANGS']) ? ${'GLOBALS'}['SUPPORTED_LANGS'] : ['ar'];
     if (!in_array($lang, $supported, true)) {
         $lang = 'ar';
     }
-    $GLOBALS['lang'] = $lang;
-    $_SESSION['lang'] = $lang;
+    ${'GLOBALS'}['lang'] = $lang;
+    ${'_SESSION'}['lang'] = $lang;
     @setcookie('lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
     // keep admin in sync
     @setcookie('gdy_lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
@@ -86,7 +102,7 @@ function gdy_set_lang($lang)
  */
 function is_rtl($lang = null)
 {
-    $lang = $lang ?: (isset($GLOBALS['lang']) ? $GLOBALS['lang'] : 'ar');
+    $lang = $lang ?: (isset(${'GLOBALS'}['lang']) ? ${'GLOBALS'}['lang'] : 'ar');
     return $lang === 'ar';
 }
 
@@ -108,8 +124,8 @@ function gdy_is_rtl($lang = null) { return is_rtl($lang); }
  */
 function gdy_lang_url($targetLang)
 {
-    $supported = isset($GLOBALS['SUPPORTED_LANGS']) && is_array($GLOBALS['SUPPORTED_LANGS'])
-        ? $GLOBALS['SUPPORTED_LANGS']
+    $supported = isset(${'GLOBALS'}['SUPPORTED_LANGS']) && is_array(${'GLOBALS'}['SUPPORTED_LANGS'])
+        ? ${'GLOBALS'}['SUPPORTED_LANGS']
         : ['ar', 'en', 'fr'];
 
     $lang = strtolower(trim((string)$targetLang));
@@ -128,7 +144,7 @@ function gdy_lang_url($targetLang)
     }
 
     // Use the original URI (with prefix) if available
-    $uri = (string)($_SERVER['GDY_ORIGINAL_REQUEST_URI'] ?? ($_SERVER['REQUEST_URI'] ?? '/'));
+    $uri = (string)(${'_SERVER'}['GDY_ORIGINAL_REQUEST_URI'] ?? (${'_SERVER'}['REQUEST_URI'] ?? '/'));
     $parts = @parse_url($uri) ?: [];
     $path = (string)($parts['path'] ?? '/');
     $queryStr = (string)($parts['query'] ?? '');
@@ -167,7 +183,7 @@ function gdy_lang_url($targetLang)
 function load_translations($lang)
 {
     $lang = strtolower((string)$lang);
-    $lang = preg_replace('~[^a-z]~', '', $lang);
+    $lang = gdy_regex_replace('~[^a-z]~', '', $lang);
     $allowed = ['ar','en','fr'];
     if (!in_array($lang, $allowed, true)) { $lang = 'ar'; }
 
@@ -205,16 +221,16 @@ $file = $dir . $lang . '.php';
  */
 function ensure_i18n_loaded()
 {
-    if (!isset($GLOBALS['lang']) || !$GLOBALS['lang']) {
-        $GLOBALS['lang'] = detect_lang();
+    if (!isset(${'GLOBALS'}['lang']) || !${'GLOBALS'}['lang']) {
+        ${'GLOBALS'}['lang'] = detect_lang();
     }
-    if (!isset($GLOBALS['translations']) || !is_array($GLOBALS['translations'])) {
-        $GLOBALS['translations'] = [];
+    if (!isset(${'GLOBALS'}['translations']) || !is_array(${'GLOBALS'}['translations'])) {
+        ${'GLOBALS'}['translations'] = [];
     }
 
-    $lang = $GLOBALS['lang'];
-    if (!isset($GLOBALS['translations'][$lang]) || !is_array($GLOBALS['translations'][$lang])) {
-        $GLOBALS['translations'][$lang] = load_translations($lang);
+    $lang = ${'GLOBALS'}['lang'];
+    if (!isset(${'GLOBALS'}['translations'][$lang]) || !is_array(${'GLOBALS'}['translations'][$lang])) {
+        ${'GLOBALS'}['translations'][$lang] = load_translations($lang);
     }
 }
 
@@ -245,9 +261,9 @@ function __($key, $vars = [], $fallback = null)
 
     if (!is_array($vars)) $vars = [];
 
-    $lang = $GLOBALS['lang'];
-    $map  = isset($GLOBALS['translations'][$lang]) && is_array($GLOBALS['translations'][$lang])
-        ? $GLOBALS['translations'][$lang]
+    $lang = ${'GLOBALS'}['lang'];
+    $map  = isset(${'GLOBALS'}['translations'][$lang]) && is_array(${'GLOBALS'}['translations'][$lang])
+        ? ${'GLOBALS'}['translations'][$lang]
         : [];
 
     $text = isset($map[$key]) ? $map[$key] : (($fallback !== null) ? $fallback : $key);

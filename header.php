@@ -246,11 +246,6 @@ if (empty($headerCategories)) {
 <html lang="<?= h($gdyLang) ?>" dir="<?= $gdyIsRtl ? 'rtl' : 'ltr' ?>" data-theme="light" class="no-js">
 <head>
   <meta charset="utf-8">
-<?php
-// CSP nonce (generated in includes/bootstrap.php). Some inline scripts/styles already reference $cspNonce;
-// ensure it is always defined so nonce is not empty (empty nonce breaks CSP and can't be auto-injected).
-$cspNonce = defined('GDY_CSP_NONCE') ? (string)GDY_CSP_NONCE : '';
-?>
   <script>
     (function(){
       try{
@@ -358,7 +353,7 @@ $cspNonce = defined('GDY_CSP_NONCE') ? (string)GDY_CSP_NONCE : '';
   <?php if ($seoAuthor !== ''): ?><meta property="article:author" content="<?= h($seoAuthor) ?>"><?php endif; ?>
 
   <?php if ($seoJsonLd !== ''): ?>
-    <script type="application/ld+json" nonce="<?php echo htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8'); ?>"><?= $seoJsonLd ?></script>
+    <script type="application/ld+json"><?= $seoJsonLd ?></script>
   <?php endif; ?>
   <?php if (!gdy_is_rtl()): ?>
     <link rel="stylesheet" href="<?= h(rtrim((string)($baseUrl ?? ''), '/')) ?>/assets/css/ltr.css">
@@ -1354,11 +1349,12 @@ $__gdySwUrl       = ($__gdyBasePath === '' ? '' : $__gdyBasePath) . '/sw.js';
             useEl.setAttribute('href', href);
             useEl.setAttribute('xlink:href', href);
           }
-        }
+
+          // Notify other UI parts about theme change (safe under CSP: no eval)
           try{
             document.dispatchEvent(new CustomEvent('gdy:theme', { detail: { dark: dark } }));
           }catch(e){}
-
+        }
         var saved = null;
         try{ saved = localStorage.getItem(KEY); }catch(e){}
         if(saved === 'dark' || saved === 'light'){
@@ -1374,7 +1370,7 @@ $__gdySwUrl       = ($__gdyBasePath === '' ? '' : $__gdyBasePath) . '/sw.js';
 });
   </script>
 
-<script nonce="<?php echo htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8'); ?>">
+<script>
 (function(){
   function setupDd(id, closeOthers){
     const root = document.getElementById(id);

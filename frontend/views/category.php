@@ -792,7 +792,7 @@ if ($imgUrl === '') {
                                         <?php if ($imgUrl !== ''): ?>
                                             <img src="<?= h($imgUrl) ?>" loading="lazy" decoding="async"
                                                  alt="<?= h($title) ?>"
-                                                 onerror="this.style.display='none'; this.parentElement.classList.add('news-thumb-empty');">
+                                                 data-gdy-hide-onerror="1" data-gdy-hide-parent-class="news-thumb-empty">
                                         <?php else: ?>
                                             <div class="news-thumb-placeholder gdy-skeleton" aria-hidden="true"></div>
                                         <?php endif; ?>

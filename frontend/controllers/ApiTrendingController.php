@@ -17,9 +17,12 @@ $settings = [];
 try {
     if ($pdo instanceof PDO) {
         $stmt = $pdo->query("SELECT setting_key, `value` FROM settings");
-        foreach ($stmt as $row) {
-            $settings[$row['key']] = $row['value'];
-        }
+		    foreach ($stmt as $row) {
+		        $k = (string)($row['setting_key'] ?? '');
+		        if ($k !== '') {
+		            $settings[$k] = (string)($row['value'] ?? '');
+		        }
+		    }
     }
 } catch (Throwable $e) {
     @error_log('[Trending] settings load error: ' . $e->getMessage());
@@ -42,7 +45,7 @@ $baseUrl = base_url();
 $trendingNews = [];
 try {
     if ($pdo instanceof PDO) {
-        $sql = "SELECT id, title, excerpt, featured_image, published_at, views
+        $sql = "SELECT id, title, excerpt, COALESCE(featured_image,image_path,image) AS featured_image, published_at, views
                 FROM news 
                 WHERE status = 'published' 
                 ORDER BY views DESC, published_at DESC 

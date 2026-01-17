@@ -392,7 +392,7 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
   <div class="sb-search">
     <input id="globalSearch" type="search" class="sb-search-input"
            placeholder="<?= h(__("quick_menu_search")) ?>"
-           oninput="window.__filterMenu && window.__filterMenu(this.value)">
+           id="gdyAdminMenuSearch">
   </div>
 
   <ul class="sb-menu">
@@ -559,6 +559,14 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
 
   window.__filterMenu = filterMenu;
 
+  // Bind menu search input (no inline handlers; CSP-friendly)
+  const menuSearch = document.getElementById('gdyAdminMenuSearch');
+  if(menuSearch){
+    menuSearch.addEventListener('input', function(){
+      if(window.__filterMenu) window.__filterMenu(this.value);
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
@@ -574,6 +582,8 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
 })();
 </script>
 
+
+<script src="/assets/js/image_fallback.js" defer></script>
 <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <?php if (function_exists('do_action')) { do_action('admin_footer'); } ?>
 </body>

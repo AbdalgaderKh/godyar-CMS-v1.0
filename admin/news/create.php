@@ -285,6 +285,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $newsCols = gdy_db_columns($pdo, 'news');
 
+            // If publishing and published_at is available but empty, set it to now.
+            if (($status === 'published' || $status === 'publish') && isset($newsCols['published_at']) && $publishedAtForDb === null) {
+                $publishedAtForDb = date('Y-m-d H:i:s');
+            }
+
             $columns = [];
             $placeholders = [];
 
@@ -321,9 +326,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($newsCols['seo_description'])) $add('seo_description', ':seo_description');
             if (isset($newsCols['seo_keywords'])) $add('seo_keywords', ':seo_keywords');
 
-            if (isset($newsCols['image'])) {
-                array_unshift($columns, 'image');
-                array_unshift($placeholders, ':image');
+            // Image columns vary by schema. Store the same uploaded path in every available image column.
+            $imageCols = [];
+            foreach (['featured_image', 'image_path', 'image'] as $ic) {
+                if (isset($newsCols[$ic])) {
+                    $imageCols[] = $ic;
+                    $add($ic, ':' . $ic);
+                }
             }
 
             if (isset($newsCols['created_at'])) {
@@ -396,8 +405,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bindValue(':seo_keywords', $seo_keywords, PDO::PARAM_STR);
             }
 
-            if (isset($newsCols['image'])) {
-                $stmt->bindValue(':image', $imagePath, $imagePath ? PDO::PARAM_STR : PDO::PARAM_NULL);
+            // Bind each image placeholder (must be unique for PDO)
+            foreach ($imageCols as $ic) {
+                $stmt->bindValue(':' . $ic, $imagePath, $imagePath ? PDO::PARAM_STR : PDO::PARAM_NULL);
             }
 
             $stmt->execute();

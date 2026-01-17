@@ -503,14 +503,10 @@ $buildNewsUrl = function (array $row) use ($baseUrl): string {
           <?php foreach ($sidebarAuthors as $a): ?>
             <?php $authorUrl = $a['social_website'] ?? $a['social_twitter'] ?? ''; ?>
             <div class="gdy-author-card">
-              <div class="gdy-author-avatar">
-                <?php if (!empty($a['avatar'])): ?>
-                  <img src="<?= h($a['avatar']) ?>" alt="<?= h($a['name'] ?? '') ?>"
-                       style="width:100%;height:100%;object-fit:cover;">
-                <?php else: ?>
-                  <?= h(mb_substr($a['name'] ?? '?', 0, 1, 'UTF-8')) ?>
-                <?php endif; ?>
-              </div>
+              <!-- Requirement: hide author image everywhere except the dedicated "كتّاب الرأي" section. -->
+              <div class="gdy-author-avatar" aria-hidden="true"><?php
+                echo h(mb_substr($a['name'] ?? '?', 0, 1, 'UTF-8'));
+              ?></div>
               <div class="flex-grow-1">
                 <?php if ($authorUrl): ?>
                   <a href="<?= h($authorUrl) ?>" target="_blank" rel="noopener"

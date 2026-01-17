@@ -18,11 +18,26 @@ try {
     if ($pdo instanceof PDO) {
         $stmt = $pdo->query("SELECT setting_key, `value` FROM settings");
         foreach ($stmt as $row) {
-            $settings[$row['key']] = $row['value'];
+            $k = (string)($row['setting_key'] ?? '');
+            if ($k !== '') {
+                $settings[$k] = (string)($row['value'] ?? '');
+            }
         }
     }
 } catch (Throwable $e) {
     @error_log('[Trending] settings load error: ' . $e->getMessage());
+}
+
+// Normalize image paths (e.g. "uploads/news/x.jpg") so they work on nested routes.
+if (!function_exists('gdy_img_src')) {
+    function gdy_img_src(?string $src): string {
+        $src = trim((string)$src);
+        if ($src === '') return '';
+        if (preg_match('~^(https?:)?//~i', $src)) return $src;
+        if (str_starts_with($src, 'data:')) return $src;
+        if ($src[0] === '/') return $src;
+        return '/' . ltrim($src, '/');
+    }
 }
 
 function setting(array $settings, string $key, $default = ''): string {
@@ -84,7 +99,7 @@ $baseUrl = base_url();
 $trendingNews = [];
 try {
     if ($pdo instanceof PDO) {
-        $sql = "SELECT id, title, excerpt, featured_image, published_at, views
+	    	$sql = "SELECT id, title, excerpt, COALESCE(featured_image,image_path,image) AS featured_image, published_at, views
                 FROM news 
                 WHERE status = 'published' 
                 ORDER BY views DESC, published_at DESC 
@@ -130,7 +145,7 @@ if (!defined('GDY_TPL_WRAPPED')) {
                 <article class="news-card fade-in">
                     <?php if (!empty($row['featured_image'])): ?>
                         <a href="<?= h($newsUrl($row)) ?>" class="news-thumb">
-                            <img src="<?= h($row['featured_image']) ?>" alt="<?= h($row['title']) ?>">
+						<img src="<?= h(gdy_img_src($row['featured_image'] ?? '')) ?>" alt="<?= h($row['title']) ?>">
                         </a>
                     <?php endif; ?>
                     <div class="news-body">

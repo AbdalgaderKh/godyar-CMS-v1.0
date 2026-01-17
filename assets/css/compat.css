@@ -1,0 +1,30 @@
+/* =========================================================
+   Godyar CMS — Compatibility Patch (Safari/Firefox)
+   - Adds WebKit fallbacks for backdrop-filter
+   - Adds WebKit scrollbar hiding fallback
+   - Safe to include after main CSS
+   ========================================================= */
+
+/* Safari: support backdrop-filter (WebKit first) */
+.hm-featured-play{
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Ensure correct ordering for Safari */
+.site-header{
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Safari/Chrome: hide scrollbar fallback */
+.cats-nav{
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* Legacy Edge/IE */
+}
+
+.cats-nav::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+  display: none;
+}

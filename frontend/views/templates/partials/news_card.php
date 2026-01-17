@@ -40,6 +40,9 @@ if (!function_exists('build_image_url')) {
     return $rootBase . '/' . ltrim($path, '/');
 }
 
+    // Close the function_exists guard
+}
+
 // تجهيز البيانات
 $id        = isset($row['id']) ? (int)$row['id'] : 0;
 $slug      = isset($row['slug']) ? trim((string)$row['slug']) : '';

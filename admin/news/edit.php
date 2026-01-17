@@ -325,13 +325,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($category_id <= 0) $errors['category_id'] = __('t_96bde08b29', 'يرجى اختيار التصنيف.');
 
     $publishedAtForDb = gdy_dt_local_to_sql($published_at);
+    // If publishing and published_at exists but is empty, set it to now.
+    if (($status === 'published' || $status === 'publish') && isset($newsCols['published_at']) && $publishedAtForDb === null) {
+        $publishedAtForDb = date('Y-m-d H:i:s');
+    }
 
     if (!$errors) {
 
         // ---------------------------------------------------------------------
         // (اختياري) رفع صورة جديدة للخبر — تستبدل الصورة الحالية عند الحفظ
         // ---------------------------------------------------------------------
-        $oldImagePath = (string)($news['image'] ?? '');
+        // Image can live in different columns across installs. Keep the old path for potential cleanup.
+        $oldImagePath = (string)($news['featured_image'] ?? ($news['image_path'] ?? ($news['image'] ?? '')));
         $imagePath = $oldImagePath !== '' ? $oldImagePath : null;
         $uploadedNewImage = false;
 
@@ -426,7 +431,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($newsCols['seo_title'])) $addSet('seo_title', ':seo_title');
             if (isset($newsCols['seo_description'])) $addSet('seo_description', ':seo_description');
             if (isset($newsCols['seo_keywords'])) $addSet('seo_keywords', ':seo_keywords');
-            if (isset($newsCols['image'])) $addSet('image', ':image');
+            // Image columns vary by schema. Store the same uploaded path in every available image column.
+            // Use unique placeholders for PDO compatibility.
+            foreach (['featured_image', 'image_path', 'image'] as $ic) {
+                if (isset($newsCols[$ic])) $addSet($ic, ':' . $ic);
+            }
 
             $sql = "UPDATE news SET " . implode(",\n", $sets) . "\nWHERE id = :id";
             $stmt = $pdo->prepare($sql);
@@ -465,8 +474,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($newsCols['seo_description'])) $stmt->bindValue(':seo_description', $seo_description, PDO::PARAM_STR);
             if (isset($newsCols['seo_keywords'])) $stmt->bindValue(':seo_keywords', $seo_keywords, PDO::PARAM_STR);
 
-            if (isset($newsCols['image'])) {
-                $stmt->bindValue(':image', $imagePath, $imagePath ? PDO::PARAM_STR : PDO::PARAM_NULL);
+            // Bind image placeholders (unique)
+            foreach (['featured_image', 'image_path', 'image'] as $ic) {
+                if (isset($newsCols[$ic])) {
+                    $stmt->bindValue(':' . $ic, $imagePath, $imagePath ? PDO::PARAM_STR : PDO::PARAM_NULL);
+                }
             }
 
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -506,9 +518,9 @@ $root = dirname(__DIR__, 2);
             }
 
             // حدّث قيمة الصورة في النسخة الحالية للعرض
-            if (isset($newsCols['image'])) {
-                $news['image'] = $imagePath;
-            }
+            if (isset($newsCols['featured_image'])) $news['featured_image'] = $imagePath;
+            if (isset($newsCols['image_path'])) $news['image_path'] = $imagePath;
+            if (isset($newsCols['image'])) $news['image'] = $imagePath;
 
             try { gdy_sync_news_tags($pdo, $id, (string)$tags_input); }
             catch (Throwable $e) { @error_log('Error syncing tags: ' . $e->getMessage()); }
