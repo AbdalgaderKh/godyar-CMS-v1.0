@@ -1,10 +1,42 @@
 version = 1
 
+test_patterns = [
+  "tests/*_test.go",
+  "**/*_test.go",
+"src/*.min.js"
+]
+
 [[analyzers]]
-name = "python"
+name = "go"
+enabled = true
 
   [analyzers.meta]
-  runtime_version = "3.x.x"
+  import_paths = ["github.com/deepsourcelabs/web-app/backend"]
+  import_root = "github.com/deepsourcelabs/web-app"
 
 [[analyzers]]
-name = "<analyzer-python>"
+name = "javascript"
+enabled = true
+
+  [analyzers.meta]
+  ecma_version = "2016"
+  module_system = "commonjs"
+  environment = [
+    "nodejs",
+    "browser",
+    "jest",
+  ]
+
+  plugins = ["react"]
+  style_guide = "airbnb"
+  dialect = "typescript"
+
+[[analyzers]]
+name = "docker"
+enabled = true
+
+  [analyzers.meta]
+  dockerfile_paths = [
+    "dockerfile_dev",
+    "dockerfile_prod"
+  ]
