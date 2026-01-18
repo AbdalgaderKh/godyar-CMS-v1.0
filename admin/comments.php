@@ -50,21 +50,20 @@ if (!empty($_GET['do']) && !empty($_GET['id'])) {
                 ->execute([':id' => $id]);
             $actionMsg = __('t_17a1b66879', 'تم حذف التعليق.');
         }
-
         // إعادة حساب comments_count للخبر
-        $pdo->prepare("
+        $pdo->prepare(""
             UPDATE news n
             SET comments_count = (
               SELECT COUNT(*) FROM news_comments c
               WHERE c.news_id = n.id AND c.status='approved'
             )
             WHERE n.id = :nid
-        ")->execute([':nid' => $nid]);
+        "")->execute([':nid' => $nid]);
     }
 }
 
 // جلب آخر التعليقات
-$stmt = $pdo->query("
+$stmt = $pdo->query(""
     SELECT c.id, c.news_id, c.name, c.email, c.body, c.status, c.created_at,
            n.title AS news_title
     FROM news_comments c

@@ -84,7 +84,6 @@ require_once __DIR__ . '/../../layout/sidebar.php';
 <div class="admin-content">
   <div class="gdy-admin-page">
     <div class="container-xxl" style="max-width:1200px;">
-
       <div class="gdy-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
           <h1 class="h4 text-white mb-1"><svg class="gdy-icon me-2" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?= h(__('t_6a694bd722', 'الطابور والجدولة')) ?></h1>

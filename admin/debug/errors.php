@@ -16,6 +16,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 $storageLog = __DIR__ . '/../storage/admin_debug.log';
 
+
 // مسح آخر خطأ (Session)
 if (isset($_GET['clear']) && $_GET['clear'] === '1') {
     unset($_SESSION['admin_last_error']);

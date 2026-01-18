@@ -507,57 +507,57 @@ $totalAll = $counts['news'] + $counts['pages'] + $counts['cats'];
             </select>
 
             <span>المدة:</span>
-            <select name="date">
-              <option value="any" <?= $dateFilter==='any'?'selected':'' ?>>أي وقت</option>
-              <option value="1d"  <?= $dateFilter==='1d'?'selected':''  ?>>آخر 24 ساعة</option>
-              <option value="7d"  <?= $dateFilter==='7d'?'selected':''  ?>>آخر 7 أيام</option>
-              <option value="30d" <?= $dateFilter==='30d'?'selected':'' ?>>آخر 30 يومًا</option>
-            </select>
+                <select name="date">
+                  <option value="any" <?= $dateFilter==='any'? 'selected' : '' ?>>أي وقت</option>
+                  <option value="1d"  <?= $dateFilter==='1d'? 'selected' : ''  ?>>آخر 24 ساعة</option>
+                  <option value="7d"  <?= $dateFilter==='7d'? 'selected' : ''  ?>>آخر 7 أيام</option>
+                  <option value="30d" <?= $dateFilter==='30d'? 'selected' : '' ?>>آخر 30 يومًا</option>
+                </select>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </section>
+        </section>
 
-    <!-- النتائج -->
-    <section class="results-wrap">
-      <div class="results-summary">
-        <div>
-          <?php if ($q !== '' || $typeFilter !== 'all' || $dateFilter !== 'any'): ?>
-            تم العثور على تقريبًا
-            <strong><?= (int)$totalAll ?></strong>
-            نتيجة في الموقع (معروضة منها مجموعة مختصرة لكل نوع).
+        <!-- النتائج -->
+        <section class="results-wrap">
+          <div class="results-summary">
+            <div>
+              <?php if ($q !== '' || $typeFilter !== 'all' || $dateFilter !== 'any'): ?>
+                تم العثور على تقريبًا
+                <strong><?= (int)$totalAll ?></strong>
+                نتيجة في الموقع (معروضة منها مجموعة مختصرة لكل نوع).
+              <?php else: ?>
+                اكتب كلمة البحث واختر نوع المحتوى والمدة الزمنية ثم اضغط "بحث".
+              <?php endif; ?>
+            </div>
+            <?php if ($q): ?>
+              <div class="text-muted">
+                يمكن استخدام "بحث عبر قوقل" لعرض نتائج <code>site:<?= h($_SERVER['HTTP_HOST'] ?? 'godyar.org') ?></code>.
+              </div>
+            <?php endif; ?>
+          </div>
+
+          <?php if ($q === '' && $typeFilter === 'all' && $dateFilter === 'any'): ?>
+            <div class="empty">
+              ابدأ بالبحث عن أي كلمة مفتاحية، مثل: <strong>اقتصاد</strong>، <strong>الطقس</strong>، <strong>من نحن</strong>...
+            </div>
           <?php else: ?>
-            اكتب كلمة البحث واختر نوع المحتوى والمدة الزمنية ثم اضغط "بحث".
-          <?php endif; ?>
-        </div>
-        <?php if ($q): ?>
-          <div class="text-muted">
-            يمكن استخدام "بحث عبر قوقل" لعرض نتائج <code>site:<?= h($_SERVER['HTTP_HOST'] ?? 'godyar.org') ?></code>.
-          </div>
-        <?php endif; ?>
-      </div>
 
-      <?php if ($q === '' && $typeFilter === 'all' && $dateFilter === 'any'): ?>
-        <div class="empty">
-          ابدأ بالبحث عن أي كلمة مفتاحية، مثل: <strong>اقتصاد</strong>، <strong>الطقس</strong>، <strong>من نحن</strong>...
-        </div>
-      <?php else: ?>
+            <?php if (($typeFilter === 'all' || $typeFilter === 'news') && !empty($newsResults)): ?>
+              <h2 class="section-title">
+                <svg class="gdy-icon ms-1" aria-hidden="true" focusable="false"><use href="#news"></use></svg> أخبار
+                <span class="count">(<?= (int)$counts['news'] ?> نتيجة تقريبًا)</span>
+              </h2>
+              <div class="grid">
+                <?php foreach ($newsResults as $n):
+                  $id    = (int)($n['id'] ?? 0);
+                  $slug  = (string)($n['slug'] ?? '');
+                  $title = (string)($n['title'] ?? '');
+                  $type  = (string)($n['type'] ?? '');
+                  $date  = !empty($n['created_at'] ?? '') ? date('Y-m-d', strtotime((string)$n['created_at'])) : '';
+                  $ex    = (string)($n['excerpt'] ?? '');
 
-        <?php if (($typeFilter === 'all' || $typeFilter === 'news') && !empty($newsResults)): ?>
-          <h2 class="section-title">
-            <svg class="gdy-icon ms-1" aria-hidden="true" focusable="false"><use href="#news"></use></svg> أخبار
-            <span class="count">(<?= (int)$counts['news'] ?> نتيجة تقريبًا)</span>
-          </h2>
-          <div class="grid">
-            <?php foreach ($newsResults as $n):
-              $id    = (int)($n['id'] ?? 0);
-              $slug  = (string)($n['slug'] ?? '');
-              $title = (string)($n['title'] ?? '');
-              $type  = (string)($n['type'] ?? '');
-              $date  = !empty($n['created_at'] ?? '') ? date('Y-m-d', strtotime((string)$n['created_at'])) : '';
-              $ex    = (string)($n['excerpt'] ?? '');
-
-	              // المسار الحديث: /news/{slug} (واحتياطيًا /news/id/{id})
+    		      // المسار الحديث: /news/{slug} (واحتياطيًا /news/id/{id})
 	              if ($slug !== '') {
 	                $url = $baseUrl . '/news/id/' . (int)$id;
 	              } elseif ($id > 0) {
