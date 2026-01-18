@@ -13,8 +13,7 @@ if (!defined('GDY_HOTFIX_PREPEND_LOADED')) {
 }
 
 if (function_exists('mb_internal_encoding')) {
-    // Avoid @ error suppression; ignore return value.
-    mb_internal_encoding('UTF-8');
+    @mb_internal_encoding('UTF-8');
 }
 
 /**
@@ -23,7 +22,7 @@ if (function_exists('mb_internal_encoding')) {
  * modifier to avoid any string-eval behavior.
  */
 if (!function_exists('gdy_regex_replace')) {
-    function gdy_regex_replace($pattern, $replacement, $subject, $limit = -1, &$count = null)
+    function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
     {
         // Defensive: ignore deprecated eval modifier if ever present
         if (is_string($pattern) && preg_match('/^(.)(?:\\\\.|(?!\1).)*\1([a-zA-Z]*)$/s', $pattern, $m)) {
@@ -35,17 +34,14 @@ if (!function_exists('gdy_regex_replace')) {
         }
 
         if ($count === null) {
-            return preg_replace($pattern, $replacement, $subject, (int)$limit);
+            return preg_replace($pattern, $replacement, $subject, $limit);
         }
-        $tmp = 0;
-        $out = preg_replace($pattern, $replacement, $subject, (int)$limit, $tmp);
-        $count = $tmp;
-        return $out;
+        return preg_replace($pattern, $replacement, $subject, $limit, $count);
     }
 }
 
 if (!function_exists('gdy_regex_replace_callback')) {
-    function gdy_regex_replace_callback($pattern, $callback, $subject, $limit = -1, &$count = null)
+    function gdy_regex_replace_callback(string $pattern, callable $callback, $subject, int $limit = -1, ?int &$count = null)
     {
         if (is_string($pattern) && preg_match('/^(.)(?:\\\\.|(?!\1).)*\1([a-zA-Z]*)$/s', $pattern, $m)) {
             $mods = $m[2] ?? '';
@@ -56,11 +52,8 @@ if (!function_exists('gdy_regex_replace_callback')) {
         }
 
         if ($count === null) {
-            return preg_replace_callback($pattern, $callback, $subject, (int)$limit);
+            return preg_replace_callback($pattern, $callback, $subject, $limit);
         }
-        $tmp = 0;
-        $out = preg_replace_callback($pattern, $callback, $subject, (int)$limit, $tmp);
-        $count = $tmp;
-        return $out;
+        return preg_replace_callback($pattern, $callback, $subject, $limit, $count);
     }
 }

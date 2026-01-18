@@ -109,9 +109,7 @@ $needExt = ($drv === 'pgsql') ? 'pdo_pgsql' : 'pdo_mysql';
 
 if (!extension_loaded('pdo') || !extension_loaded($needExt)) {
     http_response_code(500);
-    if (function_exists('error_log')) {
-        error_log('[Bootstrap] Missing PDO driver: ' . $needExt);
-    }
+    @error_log('[Bootstrap] Missing PDO driver: ' . $needExt);
     if ($needExt === 'pdo_pgsql') {
         exit('خطأ في إعدادات السيرفر: يلزم تفعيل إضافة PDO PostgreSQL (pdo_pgsql) من لوحة الاستضافة/إعدادات PHP ثم إعادة المحاولة.');
     }
@@ -154,9 +152,7 @@ $logDir  = ROOT_PATH . '/storage/logs';
 $logFile = $logDir . '/php-error.log';
 
 if (!is_dir($logDir)) {
-    if (!is_dir($logDir)) {
-        mkdir($logDir, 0755, true);
-    }
+    @mkdir($logDir, 0755, true);
 }
 ini_set('error_log', $logFile);
 
@@ -183,43 +179,36 @@ if (session_status() === PHP_SESSION_NONE) {
        - Example: SESSION_SAVE_PATH=/home/USER/godyar/storage/sessions
        ========================= */
     try {
-        if (function_exists('ini_set')) {
-            $sessPath = function_exists('env') ? (string)env('SESSION_SAVE_PATH', '') : '';
-            if ($sessPath !== '' && is_dir($sessPath) && is_writable($sessPath)) {
-                ini_set('session.save_path', $sessPath);
-            }
-
-            ini_set('session.use_strict_mode', '1');
-            ini_set('session.use_only_cookies', '1');
-            ini_set('session.cookie_httponly', '1');
+        $sessPath = function_exists('env') ? (string)env('SESSION_SAVE_PATH', '') : '';
+        if ($sessPath !== '' && is_dir($sessPath) && is_writable($sessPath)) {
+            @ini_set('session.save_path', $sessPath);
         }
 
+        @ini_set('session.use_strict_mode', '1');
+        @ini_set('session.use_only_cookies', '1');
+        @ini_set('session.cookie_httponly', '1');
+
         // SameSite support (PHP 7.3+)
-        if (PHP_VERSION_ID >= 70300 && function_exists('ini_set')) {
-            ini_set('session.cookie_samesite', (string)(function_exists('env') ? env('SESSION_SAMESITE', 'Lax') : 'Lax'));
+        if (PHP_VERSION_ID >= 70300) {
+            @ini_set('session.cookie_samesite', (string)(function_exists('env') ? env('SESSION_SAMESITE', 'Lax') : 'Lax'));
         }
 
         // Secure cookies automatically when HTTPS is detected
         $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
-        if ($isHttps && function_exists('ini_set')) {
-            ini_set('session.cookie_secure', '1');
+        if ($isHttps) {
+            @ini_set('session.cookie_secure', '1');
         }
     } catch (Throwable $e) {
-        // Keep silent in production; log if logger is available.
-        if (function_exists('error_log')) {
-            error_log('[bootstrap] session hardening skipped: ' . $e->getMessage());
-        }
+        @error_log('[bootstrap] session hardening skipped: ' . $e->getMessage());
     }
 
 	    // Avoid legacy cache headers (Expires/Pragma) emitted by PHP's default session cache limiter
 	    // so that caching directives are controlled explicitly.
-	    if (PHP_SAPI !== 'cli' && function_exists('session_cache_limiter')) {
-	        session_cache_limiter('');
+	    if (PHP_SAPI !== 'cli') {
+	        @session_cache_limiter('');
 	    }
 
-	    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-	        session_start();
-	    }
+	    @session_start();
 
     // --- Session bridge for OAuth + legacy keys (ensures consistent login state across the project) ---
     if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
@@ -258,9 +247,7 @@ if (!defined('GDY_CSP_NONCE')) {
 if (!headers_sent()) {
     // Basic hardening headers
     if (function_exists('header_remove')) {
-        if (function_exists('header_remove')) {
-            header_remove('X-Powered-By');
-        }
+        @header_remove('X-Powered-By');
     }
 
 	    // X-Frame-Options is intentionally omitted; we rely on CSP `frame-ancestors` for clickjacking protection.
@@ -408,9 +395,7 @@ try {
         $GLOBALS['database'] = $database;
     }
 } catch (Throwable $e) {
-    if (function_exists('error_log')) {
-        error_log('[Bootstrap] container/legacy adapter init: ' . $e->getMessage());
-    }
+    @error_log('[Bootstrap] container/legacy adapter init: ' . $e->getMessage());
 }
 
 /* =========================
@@ -548,9 +533,7 @@ try {
         }
     }
 } catch (Throwable $e) {
-    if (function_exists('error_log')) {
-        error_log('[Bootstrap] visits schema migrate: ' . $e->getMessage());
-    }
+    @error_log('[Bootstrap] visits schema migrate: ' . $e->getMessage());
 }
 
 /* =========================
@@ -659,9 +642,7 @@ function gdy_track_visit(string $page, ?int $newsId=null): void {
     if (!$pdo instanceof PDO) return;
 
     if (session_status() !== PHP_SESSION_ACTIVE) {
-        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-            session_start();
-        }
+        @session_start();
     }
 
     $key = 'visit_'.$page.'_'.($newsId ?? 0);
@@ -698,9 +679,7 @@ function gdy_track_visit(string $page, ?int $newsId=null): void {
                     $ua,
                 ]);
         } catch (Throwable $e2) {
-            if (function_exists('error_log')) {
-                error_log('[Visits] insert failed: ' . $e2->getMessage());
-            }
+            @error_log('[Visits] insert failed: ' . $e2->getMessage());
         }
     }
 }
@@ -744,9 +723,7 @@ function gdy_auto_track_request(): void
 
         gdy_track_visit($page, $newsId);
     } catch (Throwable $e) {
-        if (function_exists('error_log')) {
-            error_log('[Bootstrap] auto track: ' . $e->getMessage());
-        }
+        @error_log('[Bootstrap] auto track: ' . $e->getMessage());
     }
 }
 

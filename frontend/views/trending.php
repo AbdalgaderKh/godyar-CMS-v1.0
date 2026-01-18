@@ -145,7 +145,7 @@ if (!defined('GDY_TPL_WRAPPED')) {
                 <article class="news-card fade-in">
                     <?php if (!empty($row['featured_image'])): ?>
                         <a href="<?= h($newsUrl($row)) ?>" class="news-thumb">
-					<img src="<?= htmlspecialchars(gdy_img_src($row['featured_image'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string)($row['title'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+						<img src="<?= h(gdy_img_src($row['featured_image'] ?? '')) ?>" alt="<?= h($row['title']) ?>">
                         </a>
                     <?php endif; ?>
                     <div class="news-body">

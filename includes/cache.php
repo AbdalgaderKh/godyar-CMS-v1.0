@@ -78,12 +78,8 @@ class Cache
 
     /**
      * تخزين قيمة في الكاش لعدد ثواني محدد
-     *
-     * ملاحظة توافق: لا نستخدم typehint mixed حتى يعمل على PHP 7.4+
-     *
-     * @param mixed $value
      */
-    public static function put(string $key, $value, int $seconds = 60): void
+    public static function put(string $key, mixed $value, int $seconds = 60): void
     {
         if (!static::$enabled) {
             return;
@@ -98,22 +94,13 @@ class Cache
         ];
 
         $php = '<?php return ' . var_export($data, true) . ';';
-        // Avoid @ error suppression; pre-check writability instead.
-        $dir = dirname($file);
-        if (is_dir($dir) && is_writable($dir)) {
-            file_put_contents($file, $php, LOCK_EX);
-        }
+        @file_put_contents($file, $php, LOCK_EX);
     }
 
     /**
      * جلب قيمة من الكاش
-     *
-     * ملاحظة توافق: لا نستخدم typehint mixed/return type mixed حتى يعمل على PHP 7.4+
-     *
-     * @param mixed $default
-     * @return mixed
      */
-    public static function get(string $key, $default = null)
+    public static function get(string $key, mixed $default = null): mixed
     {
         if (!static::$enabled) {
             return $default;
@@ -137,9 +124,7 @@ class Cache
 
         if ($data['expires'] < time()) {
             // انتهت صلاحيته – نحذف الملف
-            if (is_writable($file)) {
-                unlink($file);
-            }
+            @unlink($file);
             return $default;
         }
 
@@ -153,9 +138,7 @@ class Cache
     {
         $file = static::filePath($key);
         if (is_file($file)) {
-            if (is_writable($file)) {
-                unlink($file);
-            }
+            @unlink($file);
         }
     }
 
@@ -179,9 +162,7 @@ class Cache
             }
             $f = static::$path . DIRECTORY_SEPARATOR . $item;
             if (is_file($f)) {
-                if (is_writable($f)) {
-                    unlink($f);
-                }
+                @unlink($f);
             }
         }
     }
@@ -201,8 +182,7 @@ class Cache
     protected static function ensurePath(): void
     {
         if (!is_dir(static::$path)) {
-            // Prefer non-group-writable perms by default.
-            mkdir(static::$path, 0755, true);
+            @mkdir(static::$path, 0775, true);
         }
     }
 }

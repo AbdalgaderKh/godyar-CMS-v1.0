@@ -2,9 +2,8 @@
 // /includes/lang.php
 // i18n helper (Frontend + Admin) - Backward compatible + safe defaults
 
-if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-    // Avoid @ error suppression to satisfy strict linters.
-    session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
 }
 
 /**
@@ -12,27 +11,21 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
  * On some deployments the prepend file may be bypassed; keep this file self-sufficient.
  */
 if (!function_exists('gdy_regex_replace')) {
-    function gdy_regex_replace($pattern, $replacement, $subject, $limit = -1, &$count = null)
+    function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
     {
         if ($count === null) {
-            return preg_replace($pattern, $replacement, $subject, (int)$limit);
+            return preg_replace($pattern, $replacement, $subject, $limit);
         }
-        $tmp = 0;
-        $out = preg_replace($pattern, $replacement, $subject, (int)$limit, $tmp);
-        $count = $tmp;
-        return $out;
+        return preg_replace($pattern, $replacement, $subject, $limit, $count);
     }
 }
 if (!function_exists('gdy_regex_replace_callback')) {
-    function gdy_regex_replace_callback($pattern, $callback, $subject, $limit = -1, &$count = null)
+    function gdy_regex_replace_callback(string $pattern, callable $callback, $subject, int $limit = -1, ?int &$count = null)
     {
         if ($count === null) {
-            return preg_replace_callback($pattern, $callback, $subject, (int)$limit);
+            return preg_replace_callback($pattern, $callback, $subject, $limit);
         }
-        $tmp = 0;
-        $out = preg_replace_callback($pattern, $callback, $subject, (int)$limit, $tmp);
-        $count = $tmp;
-        return $out;
+        return preg_replace_callback($pattern, $callback, $subject, $limit, $count);
     }
 }
 

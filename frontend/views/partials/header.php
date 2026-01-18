@@ -10,8 +10,8 @@ if (!function_exists('h')) {
 /**
  * قراءة حالة العضو من الجلسة
  */
-if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-    session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
 }
 
 $currentUser = $_SESSION['user'] ?? null;
