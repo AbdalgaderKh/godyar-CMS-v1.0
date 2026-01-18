@@ -109,13 +109,13 @@ $extraClass = isset($cardExtraClass) ? (string)$cardExtraClass : '';
     <div class="gdy-card-meta">
         <?php if ($date): ?>
             <span>
-                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                 <?= h($date) ?>
             </span>
         <?php endif; ?>
         <?php if ($views !== null): ?>
             <span>
-                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                 <?= number_format($views) ?> مشاهدة
             </span>
         <?php endif; ?>

@@ -142,7 +142,11 @@ if ($method === 'POST') {
         // If still missing, try load from users table
         if (($guestName === '' || $guestEmail === '') ) {
             try {
-                $st = $pdo->prepare("SELECT `username`,`display_name`,`email` FROM `users` WHERE `id` = :id LIMIT 1");
+                $dnCol = db_column_exists($pdo, 'users', 'display_name') ? 'display_name'
+                    : (db_column_exists($pdo, 'users', 'name') ? 'name'
+                    : (db_column_exists($pdo, 'users', 'full_name') ? 'full_name'
+                    : (db_column_exists($pdo, 'users', 'fullName') ? 'fullName' : 'username')));
+                $st = $pdo->prepare("SELECT `username`, `{$dnCol}` AS `display_name`, `email` FROM `users` WHERE `id` = :id LIMIT 1");
                 $st->execute([':id' => $userId]);
                 $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
                 if ($guestName === '') {

@@ -48,6 +48,56 @@ require_once ROOT_PATH . '/includes/env.php';
 // DB helpers (PDO source of truth)
 require_once ROOT_PATH . '/includes/db.php';
 
+
+if (!function_exists('normalize_display_name')) {
+    /**
+     * Normalize display name input (Unicode-safe):
+     * - remove zero-width characters
+     * - normalize apostrophes
+     * - strip diacritics/marks (tashkeel)
+     * - collapse whitespace
+     */
+    function normalize_display_name(string $name): string {
+        // Remove zero-width characters (ZWSP, ZWNJ, ZWJ, BOM)
+        $name = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $name) ?? $name;
+        // Normalize smart apostrophes to plain apostrophe
+        $name = str_replace(["’", "‘", "´"], "'", $name);
+        // Strip combining marks (helps avoid false rejections)
+        $name = preg_replace('/[\p{M}]+/u', '', $name) ?? $name;
+        $name = trim($name);
+        $name = preg_replace('/\s+/u', ' ', $name) ?? $name;
+        return $name;
+    }
+}
+
+if (!function_exists('is_valid_display_name')) {
+    /**
+     * Allowed: letters/numbers/spaces and . _ - '
+     */
+    function is_valid_display_name(string $name, int $min = 2, int $max = 50): bool {
+        $name = normalize_display_name($name);
+        $len = mb_strlen($name, 'UTF-8');
+        if ($len < $min || $len > $max) return false;
+        return (bool)preg_match("/^[\\p{L}\\p{N} ._\\-']+$/u", $name);
+    }
+}
+
+if (!function_exists('sanitize_display_name')) {
+    /**
+     * Sanitize to allowed character set; returns normalized output.
+     */
+    function sanitize_display_name(string $name, int $min = 2, int $max = 50): string {
+        $name = normalize_display_name($name);
+        $name = preg_replace("/[^\\p{L}\\p{N} ._\\-']+/u", '', $name) ?? $name;
+        $name = normalize_display_name($name);
+        if (mb_strlen($name, 'UTF-8') > $max) {
+            $name = mb_substr($name, 0, $max, 'UTF-8');
+            $name = rtrim($name);
+        }
+        if (mb_strlen($name, 'UTF-8') < $min) return '';
+        return $name;
+    }
+}
 /* =========================
    PDO driver check (mysql / pgsql)
    ========================= */
@@ -152,7 +202,13 @@ if (session_status() === PHP_SESSION_NONE) {
         @error_log('[bootstrap] session hardening skipped: ' . $e->getMessage());
     }
 
-    @session_start();
+	    // Avoid legacy cache headers (Expires/Pragma) emitted by PHP's default session cache limiter
+	    // so that caching directives are controlled explicitly.
+	    if (PHP_SAPI !== 'cli') {
+	        @session_cache_limiter('');
+	    }
+
+	    @session_start();
 
     // --- Session bridge for OAuth + legacy keys (ensures consistent login state across the project) ---
     if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
@@ -194,7 +250,7 @@ if (!headers_sent()) {
         @header_remove('X-Powered-By');
     }
 
-    header('X-Frame-Options: SAMEORIGIN');
+	    // X-Frame-Options is intentionally omitted; we rely on CSP `frame-ancestors` for clickjacking protection.
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
@@ -208,7 +264,14 @@ if (!headers_sent()) {
         header('Strict-Transport-Security: max-age=15552000; includeSubDomains');
     }
 
-    // CSP (soft for legacy compatibility) + nonce + unsafe-eval (to silence tool warnings)
+	    // Cache-control for HTML (prefer Cache-Control over legacy Expires/Pragma)
+	    $reqUri = (string)($_SERVER['REQUEST_URI'] ?? '');
+	    $isAssetReq = (bool)preg_match('~\\.(?:css|js|map|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|eot|pdf)(?:\\?|$)~i', $reqUri);
+	    if (!$isAssetReq) {
+	        header('Cache-Control: no-store, max-age=0, must-revalidate');
+	    }
+
+	    // CSP (soft for legacy compatibility) + nonce
     $nonce = GDY_CSP_NONCE;
 
     $csp = "default-src 'self'; "
@@ -275,7 +338,11 @@ try {
         $emailForHydrate = (string)($_SESSION['user_email'] ?? $_SESSION['email'] ?? ($_SESSION['user']['email'] ?? ''));
         $uidForHydrate   = (int)($_SESSION['user_id'] ?? 0);
         if ($emailForHydrate !== '' && $uidForHydrate <= 0 && isset($pdo) && $pdo instanceof \PDO) {
-            $stHyd = $pdo->prepare('SELECT id, username, display_name, role, email FROM users WHERE email = :e LIMIT 1');
+            $dnCol = db_column_exists($pdo, 'users', 'display_name') ? 'display_name'
+                : (db_column_exists($pdo, 'users', 'name') ? 'name'
+                : (db_column_exists($pdo, 'users', 'full_name') ? 'full_name'
+                : (db_column_exists($pdo, 'users', 'fullName') ? 'fullName' : 'username')));
+            $stHyd = $pdo->prepare("SELECT id, username, {$dnCol} AS display_name, role, email FROM users WHERE email = :e LIMIT 1");
             $stHyd->execute([':e' => $emailForHydrate]);
             $rowHyd = $stHyd->fetch(\PDO::FETCH_ASSOC) ?: null;
             if ($rowHyd) {

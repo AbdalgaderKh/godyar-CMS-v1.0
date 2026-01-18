@@ -507,7 +507,7 @@ if (!$newsExists) {
     <main class="layout-main">
       <div class="container">
         <div class="gdy-notfound">
-          <div class="gdy-notfound-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></div>
+          <div class="gdy-notfound-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg></div>
           <h1>الخبر غير موجود</h1>
           <p>عذراً، لم نتمكن من العثور على الخبر الذي تبحث عنه.</p>
           <div class="gdy-notfound-actions">
@@ -566,17 +566,17 @@ if ($isPaywalled) {
     if ($meteredLocked) {
     $paywallBoxHtml =
         '<div class="gdy-paywall-box" role="region" aria-label="حد القراءة المجانية">' .
-            '<div class="gdy-paywall-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></div>' .
+            '<div class="gdy-paywall-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg></div>' .
             '<div class="gdy-paywall-content">' .
                 '<strong>وصلت لحد القراءة المجانية</strong>' .
                 '<div class="gdy-paywall-sub">يمكنك قراءة ' . (int)$meterLimit . ' مقالات مجاناً خلال أسبوع. سجّل دخولك أو أنشئ حساباً لمتابعة القراءة.</div>' .
                 '<div class="gdy-paywall-sub" style="opacity:.9">قرأت: ' . (int)$meterCount . ' / ' . (int)$meterLimit . '</div>' .
                 '<div class="gdy-paywall-actions">' .
                     '<a class="gdy-paywall-btn primary" href="' . h($loginUrl) . '">' .
-                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg> تسجيل الدخول' .
+                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#user"></use></svg> تسجيل الدخول' .
                     '</a>' .
                     '<a class="gdy-paywall-btn" href="' . h($registerUrl) . '">' .
-                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> إنشاء حساب' .
+                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#plus"></use></svg> إنشاء حساب' .
                     '</a>' .
                 '</div>' .
             '</div>' .
@@ -584,16 +584,16 @@ if ($isPaywalled) {
 } else {
     $paywallBoxHtml =
         '<div class="gdy-paywall-box" role="region" aria-label="محتوى للأعضاء">' .
-            '<div class="gdy-paywall-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></div>' .
+            '<div class="gdy-paywall-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg></div>' .
             '<div class="gdy-paywall-content">' .
                 '<strong>هذا المقال للأعضاء فقط</strong>' .
                 '<div class="gdy-paywall-sub">سجّل دخولك أو أنشئ حساباً لمتابعة قراءة المقال بالكامل.</div>' .
                 '<div class="gdy-paywall-actions">' .
                     '<a class="gdy-paywall-btn primary" href="' . h($loginUrl) . '">' .
-                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg> تسجيل الدخول' .
+                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#user"></use></svg> تسجيل الدخول' .
                     '</a>' .
                     '<a class="gdy-paywall-btn" href="' . h($registerUrl) . '">' .
-                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> إنشاء حساب' .
+                        '<svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#plus"></use></svg> إنشاء حساب' .
                     '</a>' .
                 '</div>' .
             '</div>' .
@@ -623,7 +623,7 @@ if (!$isPaywalled) {
   $inlineTocHtml = '';
   if (!empty($toc) && is_array($toc)) {
     $inlineTocHtml .= '<div class="gdy-inline-toc" id="gdyInlineToc">';
-    $inlineTocHtml .= '<div class="gdy-inline-toc-h"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> ' . h(__('فهرس المحتوى')) . '</div>';
+    $inlineTocHtml .= '<div class="gdy-inline-toc-h"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> ' . h(__('فهرس المحتوى')) . '</div>';
     $inlineTocHtml .= '<div class="gdy-inline-toc-b">';
     foreach ($toc as $item) {
       $cls = ($item['level'] ?? 2) === 3 ? 'lv3' : 'lv2';
@@ -638,7 +638,7 @@ if (!$isPaywalled) {
   // Poll placeholder (سيتم ملؤه عبر JS إذا كان هناك استطلاع لهذا المقال)
   $pollHtml = '';
   if ($postId > 0) {
-    $pollHtml = '<div class="gdy-inline-poll"><div class="gdy-inline-poll-h"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> ' . h(__('استطلاع')) . '</div><div id="gdy-poll" data-news-id="' . (int)$postId . '"></div></div>';
+    $pollHtml = '<div class="gdy-inline-poll"><div class="gdy-inline-poll-h"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#plus"></use></svg> ' . h(__('استطلاع')) . '</div><div id="gdy-poll" data-news-id="' . (int)$postId . '"></div></div>';
   }
 
   // إدراج الاستطلاع بعد أول فقرة إن أمكن
@@ -865,7 +865,8 @@ html.theme-dark .gdy-paywall-fade{
   border: 1px solid rgba(var(--primary-rgb), .22);
   color: #0f172a;
   box-shadow: 0 8px 18px rgba(15,23,42,.06);
-  backdrop-filter: blur(10px);
+	  -webkit-backdrop-filter: blur(10px);
+	  backdrop-filter: blur(10px);
 }
 .gdy-pill i{
   color: var(--primary);
@@ -887,7 +888,8 @@ html.theme-dark .gdy-paywall-fade{
   border-radius: 16px;
   border: 1px solid rgba(var(--primary-rgb),.22);
   background: linear-gradient(135deg, rgba(var(--primary-rgb),.14), rgba(255,255,255,.88) 60%);
-  backdrop-filter: blur(10px);
+	  -webkit-backdrop-filter: blur(10px);
+	  backdrop-filter: blur(10px);
 }
 
 .gdy-badge{
@@ -1200,7 +1202,8 @@ body.gdy-print-mode .gdy-shell{ grid-template-columns: 1fr !important; }
   border-radius:18px;
   border:1px solid rgba(255,255,255,.22);
   background: rgba(2,6,23,.35);
-  backdrop-filter: blur(10px);
+	  -webkit-backdrop-filter: blur(10px);
+	  backdrop-filter: blur(10px);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -1400,7 +1403,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
     <div class="gdy-print-head" aria-hidden="true">
       <div class="gdy-print-head-inner">
         <div class="gdy-print-brand">
-          <div class="name"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#news"></use></svg><?php echo  h($printSiteName) ?></div>
+          <div class="name"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#news"></use></svg><?php echo  h($printSiteName) ?></div>
           <div class="gdy-print-right">
             <a class="url" href="<?php echo  h($newsUrl) ?>"><?php echo  h($newsUrl) ?></a>
             <div class="gdy-print-qr" title="QR">
@@ -1408,7 +1411,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
           </div>
         </div>
         <div class="gdy-print-sub">
-          <span><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>رابط المقال</span>
+          <span><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>رابط المقال</span>
         </div>
       </div>
     </div>
@@ -1457,26 +1460,26 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
     <div class="gdy-opinion-social" aria-label="<?php echo  h(__('تواصل مع الكاتب')) ?>">
       <?php if ($oaFacebook !== ''): ?>
-        <a href="<?php echo  h($oaFacebook) ?>" target="_blank" rel="noopener" aria-label="Facebook"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg></a>
+        <a href="<?php echo  h($oaFacebook) ?>" target="_blank" rel="noopener" aria-label="Facebook"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#facebook"></use></svg></a>
       <?php endif; ?>
       <?php if ($oaTwitter !== ''): ?>
-        <a href="<?php echo  h($oaTwitter) ?>" target="_blank" rel="noopener" aria-label="X"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg></a>
+        <a href="<?php echo  h($oaTwitter) ?>" target="_blank" rel="noopener" aria-label="X"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#x"></use></svg></a>
       <?php endif; ?>
 
       <!-- واتساب: مشاركة رابط المقال -->
-      <a href="<?php echo  h($shareWhatsapp) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#whatsapp"></use></svg></a>
+      <a href="<?php echo  h($shareWhatsapp) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#whatsapp"></use></svg></a>
 
       <!-- بريد: إن كان بريد الكاتب موجوداً استخدمه، وإلا مشاركة عبر البريد -->
       <?php if ($oaEmail !== ''): ?>
-        <a href="mailto:<?php echo  h($oaEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
+        <a href="mailto:<?php echo  h($oaEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg></a>
       <?php else: ?>
-        <a href="<?php echo  h($shareEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></a>
+        <a href="<?php echo  h($shareEmail) ?>" aria-label="Email"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg></a>
       <?php endif; ?>
     </div>
   </div>
 
   <div class="gdy-opinion-divider" aria-hidden="true"></div>
-  <div class="gdy-opinion-article-badge"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('مقال مميز')) ?></div>
+  <div class="gdy-opinion-article-badge"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('مقال مميز')) ?></div>
 <?php endif; ?>
 
 
@@ -1485,64 +1488,64 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
       <div class="gdy-meta-row">
         <?php if ($date !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h(date('Y/m/d', strtotime($date))) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg><?php echo  h(date('Y/m/d', strtotime($date))) ?></span>
         <?php endif; ?>
         <?php if ($sourceLabel !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h($sourceLabel) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg><?php echo  h($sourceLabel) ?></span>
         <?php endif; ?>
         <?php if (!$showOpinionAuthorCard && $authorName !== ''): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#user"></use></svg><?php echo  h($authorName) ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#user"></use></svg><?php echo  h($authorName) ?></span>
         <?php endif; ?>
-        <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  (int)$readMinutes ?> د</span>
+        <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg><?php echo  (int)$readMinutes ?> د</span>
         <?php if ($views > 0): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  (int)$views ?></span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#external-link"></use></svg><?php echo  (int)$views ?></span>
         <?php endif; ?>
         <?php if (!empty($membersOnly)): ?>
-          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> للأعضاء</span>
+          <span class="gdy-pill"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> للأعضاء</span>
         <?php endif; ?>
 
       </div>
 
       <div class="gdy-actions" role="toolbar" aria-label="أدوات التقرير">
         <button class="gdy-act" type="button" id="gdyCopyLink">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>نسخ الرابط
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#copy"></use></svg>نسخ الرابط
         </button>
         <button class="gdy-act" type="button" id="gdyShare">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>مشاركة
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>مشاركة
         </button>
         <button class="gdy-act" type="button" id="gdyBookmark"
                 data-news-id="<?php echo  (int)($post['id'] ?? 0) ?>"
                 data-title="<?php echo  h((string)($post['title'] ?? '')) ?>"
                 data-image="<?php echo  h((string)($coverUrl ?? '')) ?>"
                 data-url="<?php echo  h((string)($newsUrl ?? '')) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><span class="gdy-bm-text">حفظ</span>
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#save"></use></svg><span class="gdy-bm-text">حفظ</span>
         </button>
 
         <button class="gdy-act" type="button" id="gdyPrint">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>طباعة
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>طباعة
         </button>
         <button class="gdy-act" type="button" id="gdyPdf">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>PDF
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>PDF
         </button>
         <button class="gdy-act" type="button" id="gdyReadingMode">
-  <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>وضع قراءة
+  <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>وضع قراءة
 </button><button class="gdy-act" type="button" id="gdyFontInc" title="تكبير الخط">+</button>
 <button class="gdy-act" type="button" id="gdyFontDec" title="تصغير الخط">−</button>
         <button class="gdy-act" type="button" id="gdyQrToggle" aria-label="QR" title="QR">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
         </button>
 
         <a class="gdy-act" target="_blank" rel="noopener"
            href="https://www.facebook.com/sharer/sharer.php?u=<?php echo  urlencode($newsUrl) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg>فيسبوك
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#facebook"></use></svg>فيسبوك
         </a>
         <a class="gdy-act" target="_blank" rel="noopener"
            href="https://x.com/intent/post?url=<?php echo  urlencode($newsUrl) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg>X
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#x"></use></svg>X
         </a>
         <a class="gdy-act" target="_blank" rel="noopener"
            href="https://wa.me/?text=<?php echo  urlencode($newsUrl) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#whatsapp"></use></svg>واتساب
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#whatsapp"></use></svg>واتساب
         </a>
 
         <?php if ($aiSummary !== ''): ?>
@@ -1555,7 +1558,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
       <?php if ($aiSummary !== ''): ?>
         <div class="gdy-ai-box" id="gdyAiBox" hidden>
-          <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> ملخص المحتوى</strong>
+          <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> ملخص المحتوى</strong>
           <div style="margin-top:10px; line-height:1.85;"><?php echo  $aiSummary ?></div>
           <div class="gdy-ai-note">ملاحظة: هذا الملخص تم إنشاؤه آلياً، يُفضّل مراجعة النص الأصلي للتفاصيل.</div>
         </div>
@@ -1589,7 +1592,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                   <?php if ($tn !== ''): ?>
                     <a class="gdy-pill" style="text-decoration:none; color:#0f172a; background:#fff;"
                        href="<?php echo  h($baseUrl) ?>/tag/<?php echo  rawurlencode($ts !== '' ? $ts : $tn) ?>">
-                      <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg><?php echo  h($tn) ?>
+                      <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg><?php echo  h($tn) ?>
                     </a>
                   <?php endif; ?>
                 <?php endforeach; ?>
@@ -1608,12 +1611,12 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
   <div class="gdy-extras-grid">
     <div class="gdy-extras-card">
       <div class="gdy-extras-head">
-        <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('الاستماع للمقال')) ?></div>
+        <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('الاستماع للمقال')) ?></div>
       </div>
 
       <div id="gdy-tts" class="gdy-tts" data-news-id="<?php echo  (int)$newsId ?>">
-        <button type="button" id="gdy-tts-play" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('استماع')) ?></button>
-        <button type="button" id="gdy-tts-stop" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('إيقاف')) ?></button>
+        <button type="button" id="gdy-tts-play" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('استماع')) ?></button>
+        <button type="button" id="gdy-tts-stop" class="gdy-tts-btn"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#toggle"></use></svg> <?php echo  h(__('إيقاف')) ?></button>
 
         <label class="gdy-tts-rate">
           <span><?php echo  h(__('السرعة')) ?></span>
@@ -1621,7 +1624,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
         </label>
 
         <button type="button" id="gdy-tts-download" class="gdy-tts-btn" title="<?php echo  h(__('تحميل الصوت')) ?>">
-          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('تحميل')) ?>
+          <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('تحميل')) ?>
         </button>
 
         <div id="gdy-tts-text" style="display:none;"><?php echo  h($ttsText) ?></div>
@@ -1635,7 +1638,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
   <div class="gdy-extras-grid2">
     <div class="gdy-extras-card" id="gdy-qa" data-news-id="<?php echo  (int)$newsId ?>">
-      <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('اسأل الكاتب')) ?></div>
+      <div class="gdy-extras-title"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('اسأل الكاتب')) ?></div>
 
       <form id="gdy-ask-form" class="gdy-ask-form">
         <div class="row g-2">
@@ -1682,7 +1685,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
         <article class="gdy-card" id="gdyComments" style="margin-top:14px;">
           <div class="gdy-card-h">
-            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?php echo  h(__('التعليقات')) ?></strong>
+            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?php echo  h(__('التعليقات')) ?></strong>
             <span style="color:#64748b;font-size:.82rem;" id="gdyCommentsCount"></span>
           </div>
           <div class="gdy-card-b">
@@ -1724,10 +1727,10 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                 <div class="gdy-cmt-note" style="margin-bottom:10px;">
                   <?php echo  h(__('يمكنك التعليق بإدخال الاسم والبريد، أو تسجيل الدخول للتعليق كعضو.')) ?>
                   <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/login?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#login"></use></svg> <?php echo  h(__('تسجيل الدخول')) ?></a>
-                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/github?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> GitHub</a>
-                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/google?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> Google</a>
-                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/facebook?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg> Facebook</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/login?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#login"></use></svg> <?php echo  h(__('تسجيل الدخول')) ?></a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/github?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#plus"></use></svg> GitHub</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/google?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#plus"></use></svg> Google</a>
+                    <a class="gdy-act" href="<?php echo  h($baseUrl) ?>/oauth/facebook?next=<?php echo  urlencode('/news/id/' . (int)$postId) ?>"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#facebook"></use></svg> Facebook</a>
                   </div>
                 </div>
               <?php endif; ?>
@@ -1956,7 +1959,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
         
         <div class="gdy-card">
           <div class="gdy-card-h">
-            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> فهرس المحتوى</strong>
+            <strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> فهرس المحتوى</strong>
             <span style="color:#64748b;font-size:.78rem;">قفز سريع</span>
           </div>
           <div class="gdy-card-b gdy-toc">
@@ -1974,7 +1977,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
 <?php if (!empty($related) && is_array($related)): ?>
           <div class="gdy-card" style="margin-bottom:14px;">
-            <div class="gdy-card-h"><strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#news"></use></svg> تقارير ذات صلة</strong></div>
+            <div class="gdy-card-h"><strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#news"></use></svg> تقارير ذات صلة</strong></div>
             <div class="gdy-card-b gdy-side-list">
               <?php foreach ($related as $r): ?>
                 <?php
@@ -1986,7 +1989,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
                 <a class="gdy-side-item" href="<?php echo  h($rurl) ?>">
                   <div class="t"><?php echo  h($rt) ?></div>
                   <div class="m">
-                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                     <span><?php echo  $rd ? h(date('Y/m/d', strtotime($rd))) : '' ?></span>
                   </div>
                 </a>
@@ -1997,7 +2000,7 @@ body.gdy-reading-mode .gdy-article-body{ font-size: 1.12rem; line-height: 2.05; 
 
         <?php if (!empty($mostReadNews) && is_array($mostReadNews)): ?>
           <div class="gdy-card">
-            <div class="gdy-card-h"><strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> الأكثر قراءة</strong></div>
+            <div class="gdy-card-h"><strong><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> الأكثر قراءة</strong></div>
             <div class="gdy-card-b gdy-side-list">
               <?php foreach ($mostReadNews as $r): ?>
                 <?php

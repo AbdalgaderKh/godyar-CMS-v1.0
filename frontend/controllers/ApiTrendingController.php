@@ -112,11 +112,11 @@ require_once __DIR__ . '/../views/partials/header.php';
                         <?php endif; ?>
                         <div class="news-meta">
                             <span>
-                                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                                 <?= !empty($row['published_at']) ? h(date('Y-m-d', strtotime($row['published_at']))) : '' ?>
                             </span>
                             <span>
-                                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                                 <?= (int)($row['views'] ?? 0) ?> مشاهدة
                             </span>
                         </div>
@@ -127,14 +127,14 @@ require_once __DIR__ . '/../views/partials/header.php';
     <?php else: ?>
         <div class="side-widget" style="text-align: center; padding: 40px 20px;">
             <div class="side-widget-title">
-                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                 <span>لا توجد أخبار شائعة بعد</span>
             </div>
             <p style="color: var(--text-muted); margin-top: 10px;">
                 سيتم عرض الأخبار الأكثر مشاهدة هنا تلقائياً بعد وجود زيارات كافية.
             </p>
             <a href="<?= h($baseUrl) ?>" class="btn-primary" style="margin-top: 15px;">
-                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                 <span>العودة للرئيسية</span>
             </a>
         </div>

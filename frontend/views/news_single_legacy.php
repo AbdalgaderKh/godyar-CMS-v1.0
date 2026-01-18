@@ -474,7 +474,7 @@ if (is_file($header)) {
             <div class="news-error-state">
                 <div class="error-content">
                     <div class="error-icon">
-                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                     </div>
                     <h1 class="error-title">الخبر غير موجود</h1>
                     <p class="error-message">
@@ -483,15 +483,15 @@ if (is_file($header)) {
                     </p>
                     <div class="error-actions">
                         <a href="<?= h($homeUrl) ?>" class="error-action-btn primary">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#home"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#home"></use></svg>
                             العودة للرئيسية
                         </a>
                         <a href="<?= h($categoryUrl) ?>" class="error-action-btn secondary">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#news"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#news"></use></svg>
                             أخبار <?= h($categoryName) ?>
                         </a>
                         <a href="javascript:history.back()" class="error-action-btn secondary">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                             العودة للخلف
                         </a>
                     </div>
@@ -530,22 +530,22 @@ if (is_file($header)) {
                             <div class="article-author-social">
                                 <?php if ($authorFacebook): ?>
                                     <a href="<?= h($authorFacebook) ?>" target="_blank" rel="noopener" title="فيسبوك">
-                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg>
+                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#facebook"></use></svg>
                                     </a>
                                 <?php endif; ?>
                                 <?php if ($authorEmail): ?>
                                     <a href="mailto:<?= h($authorEmail) ?>" title="البريد الإلكتروني">
-                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                                     </a>
                                 <?php endif; ?>
                                 <?php if ($authorWebsite): ?>
                                     <a href="<?= h($authorWebsite) ?>" target="_blank" rel="noopener" title="الموقع الشخصي">
-                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#globe"></use></svg>
+                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#globe"></use></svg>
                                     </a>
                                 <?php endif; ?>
                                 <?php if ($authorTwitter): ?>
                                     <a href="<?= h($authorTwitter) ?>" target="_blank" rel="noopener" title="تويتر">
-                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg>
+                                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#x"></use></svg>
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -566,27 +566,27 @@ if (is_file($header)) {
                 <div class="article-meta">
                     <?php if ($date): ?>
                         <div class="article-meta-chip">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                             <span><?= date('Y-m-d', strtotime($date)) ?></span>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($views > 0): ?>
                         <div class="article-meta-chip">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                             <span><?= $views ?> مشاهدة</span>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($readMinutes > 0): ?>
                         <div class="article-meta-chip">
-                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                            <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                             <span><?= $readMinutes ?> دقيقة قراءة تقريباً</span>
                         </div>
                     <?php endif; ?>
 
                     <div class="article-meta-chip">
-                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+                        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg>
                         <span><?= h($categoryName) ?></span>
                     </div>
                 </div>
@@ -627,13 +627,13 @@ if (is_file($header)) {
                             <div class="article-share">
                                 <span class="text-muted small">شارك:</span>
                                 <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($newsUrl) ?>" target="_blank" rel="noopener">
-                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#facebook"></use></svg>
+                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#facebook"></use></svg>
                                 </a>
                                 <a href="https://x.com/intent/tweet?url=<?= urlencode($newsUrl) ?>&text=<?= urlencode($title) ?>" target="_blank" rel="noopener">
-                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#x"></use></svg>
+                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#x"></use></svg>
                                 </a>
                                 <a href="https://t.me/share/url?url=<?= urlencode($newsUrl) ?>&text=<?= urlencode($title) ?>" target="_blank" rel="noopener">
-                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#telegram"></use></svg>
+                                    <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#telegram"></use></svg>
                                 </a>
                             </div>
                         </div>

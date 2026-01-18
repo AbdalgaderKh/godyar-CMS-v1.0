@@ -90,10 +90,12 @@ $isLogged = ($userId > 0)
 if ($isLogged && ($name === '' || $email === '' || $userId === 0)) {
     try {
         if ($userId > 0) {
-            $st = $pdo->prepare('SELECT id, username, display_name, email FROM users WHERE id = :id LIMIT 1');
+            $dnCol = db_column_exists($pdo, 'users', 'display_name') ? 'display_name' : (db_column_exists($pdo, 'users', 'name') ? 'name' : (db_column_exists($pdo, 'users', 'full_name') ? 'full_name' : (db_column_exists($pdo, 'users', 'fullName') ? 'fullName' : 'username')));
+            $st = $pdo->prepare("SELECT id, username, {$dnCol} AS display_name, email FROM users WHERE id = :id LIMIT 1");
             $st->execute([':id' => $userId]);
         } elseif ($email !== '') {
-            $st = $pdo->prepare('SELECT id, username, display_name, email FROM users WHERE email = :em LIMIT 1');
+            $dnCol = db_column_exists($pdo, 'users', 'display_name') ? 'display_name' : (db_column_exists($pdo, 'users', 'name') ? 'name' : (db_column_exists($pdo, 'users', 'full_name') ? 'full_name' : (db_column_exists($pdo, 'users', 'fullName') ? 'fullName' : 'username')));
+            $st = $pdo->prepare("SELECT id, username, {$dnCol} AS display_name, email FROM users WHERE email = :em LIMIT 1");
             $st->execute([':em' => $email]);
         } else {
             $st = null;

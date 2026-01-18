@@ -416,7 +416,7 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
           ?>
             <li>
               <a href="<?= h($href) ?>" class="sb-item<?= $isActive ? ' active' : '' ?>">
-                <span class="sb-item-icon"><svg class="gdy-icon h($icon) ?>" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></span>
+                <span class="sb-item-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#<?= h($icon) ?>"></use></svg></span>
                 <span><?= h($text) ?></span>
               </a>
             </li>
@@ -436,7 +436,7 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
         ?>
           <li>
             <a href="<?= h($href) ?>" class="sb-item"<?= $targetAttr ?>>
-              <span class="sb-item-icon"><svg class="gdy-icon h($icon) ?>" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg></span>
+              <span class="sb-item-icon"><svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#<?= h($icon) ?>"></use></svg></span>
               <span><?= h($text) ?></span>
             </a>
           </li>
@@ -451,7 +451,7 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
     <div class="header-left">
       <button id="btnToggleSB" class="btn-icon d-inline-flex d-lg-none" type="button"
               aria-label="<?= h(__('t_42ed435ec8', 'تبديل القائمة الجانبية')) ?>" aria-expanded="false">
-        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#menu"></use></svg>
       </button>
       <div class="header-title"><?= h($title) ?></div>
     </div>
@@ -459,7 +459,7 @@ function render_page(string $title, string $activeHref, callable $contentCb): vo
     <div class="header-right">
       <button id="btnMiniSB" class="btn-icon d-none d-lg-inline-flex" type="button"
               aria-label="<?= h(__('t_76b1868c94', 'تصغير / تكبير القائمة الجانبية')) ?>" aria-expanded="true">
-        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg>
+        <svg class="gdy-icon" aria-hidden="true" focusable="false"><use href="#chevron-left"></use></svg>
       </button>
 
       <div class="user-pill">

@@ -32,6 +32,32 @@ if (!function_exists('gdy_regex_replace_callback')) {
 }
 
 /**
+ * Set a cookie using an RFC-compliant Expires format (space-separated) to satisfy strict linters
+ * and keep headers consistent across environments.
+ */
+if (!function_exists('gdy_set_cookie_rfc')) {
+    function gdy_set_cookie_rfc(string $name, string $value, int $ttlSeconds, string $path = '/', bool $secure = false, bool $httpOnly = true, string $sameSite = 'Lax'): void
+    {
+        if (headers_sent()) {
+            return;
+        }
+        $ttlSeconds = max(0, $ttlSeconds);
+        $expTs = time() + $ttlSeconds;
+        $expires = gmdate('D, d M Y H:i:s \\G\\M\\T', $expTs);
+
+        $cookie = $name . '=' . rawurlencode($value)
+            . '; Expires=' . $expires
+            . '; Max-Age=' . $ttlSeconds
+            . '; Path=' . $path
+            . '; SameSite=' . $sameSite
+            . ($secure ? '; Secure' : '')
+            . ($httpOnly ? '; HttpOnly' : '');
+
+        header('Set-Cookie: ' . $cookie, false);
+    }
+}
+
+/**
  * Supported languages
  */
 ${'GLOBALS'}['SUPPORTED_LANGS'] = isset(${'GLOBALS'}['SUPPORTED_LANGS']) && is_array(${'GLOBALS'}['SUPPORTED_LANGS'])
@@ -61,10 +87,14 @@ function detect_lang()
         $lang = 'ar';
     }
 
-    ${'_SESSION'}['lang'] = $lang;
-    @setcookie('lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
-    // keep admin in sync
-    @setcookie('gdy_lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
+	${'_SESSION'}['lang'] = $lang;
+	$isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+	    || ((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+	    || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
+	$ttl = 90 * 24 * 60 * 60;
+	gdy_set_cookie_rfc('lang', $lang, $ttl, '/', $isSecure, true, 'Lax');
+	// keep admin in sync
+	gdy_set_cookie_rfc('gdy_lang', $lang, $ttl, '/', $isSecure, true, 'Lax');
     return $lang;
 }
 
@@ -91,9 +121,13 @@ function gdy_set_lang($lang)
     }
     ${'GLOBALS'}['lang'] = $lang;
     ${'_SESSION'}['lang'] = $lang;
-    @setcookie('lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
-    // keep admin in sync
-    @setcookie('gdy_lang', $lang, time() + (90 * 24 * 60 * 60), '/', '', false, true);
+	$isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+	    || ((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+	    || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
+	$ttl = 90 * 24 * 60 * 60;
+	gdy_set_cookie_rfc('lang', $lang, $ttl, '/', $isSecure, true, 'Lax');
+	// keep admin in sync
+	gdy_set_cookie_rfc('gdy_lang', $lang, $ttl, '/', $isSecure, true, 'Lax');
     return $lang;
 }
 

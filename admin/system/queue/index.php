@@ -87,7 +87,7 @@ require_once __DIR__ . '/../../layout/sidebar.php';
 
       <div class="gdy-page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-          <h1 class="h4 text-white mb-1"><svg class="gdy-icon me-2" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('t_6a694bd722', 'الطابور والجدولة')) ?></h1>
+          <h1 class="h4 text-white mb-1"><svg class="gdy-icon me-2" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?= h(__('t_6a694bd722', 'الطابور والجدولة')) ?></h1>
           <p class="text-muted mb-0"><?= h(__('t_afed5076f5', 'تنفيذ المهام المؤجلة + جدولة نشر/إلغاء نشر الأخبار.')) ?></p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
@@ -95,13 +95,13 @@ require_once __DIR__ . '/../../layout/sidebar.php';
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
             <input type="hidden" name="action" value="run_scheduler_now">
-            <button class="btn btn-outline-info btn-sm"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('t_70c528f1d0', 'تشغيل جدولة الأخبار الآن')) ?></button>
+            <button class="btn btn-outline-info btn-sm"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?= h(__('t_70c528f1d0', 'تشغيل جدولة الأخبار الآن')) ?></button>
           </form>
           <form method="post" class="m-0">
             <input type="hidden" name="action" value="clear_done">
-            <button class="btn btn-outline-warning btn-sm"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('t_15dad1b337', 'حذف المكتمل')) ?></button>
+            <button class="btn btn-outline-warning btn-sm"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="#trash"></use></svg> <?= h(__('t_15dad1b337', 'حذف المكتمل')) ?></button>
           </form>
-          <a class="btn btn-outline-success btn-sm" href="worker.php" target="_blank"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="/assets/icons/gdy-icons.svg#dot"></use></svg> <?= h(__('t_eb011f743d', 'تشغيل العامل')) ?></a>
+          <a class="btn btn-outline-success btn-sm" href="worker.php" target="_blank"><svg class="gdy-icon me-1" aria-hidden="true" focusable="false"><use href="#more-h"></use></svg> <?= h(__('t_eb011f743d', 'تشغيل العامل')) ?></a>
         </div>
       </div>
 
