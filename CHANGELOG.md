@@ -212,3 +212,28 @@ All notable changes to this GitHub release are documented here.
 ### Notes
 - If you are using a static analyzer with “Autofix”, avoid bulk autofixes on PHP templates; prefer targeted fixes, then re-run the analyzer.
 
+## 2026-01-18 View include hardening (v1.11-git-clean-r23)
+
+### Safe view loading without breaking templates
+- Fixed: replaced per-controller `view_include()` helpers with a single, centralized `gdy_require_view()` that:
+  - only allows includes from `frontend/views/`
+  - keeps controller scope intact (views still see controller variables)
+  - provides a friendly “View not found” message instead of a fatal error
+- Improved: removed error-suppression operator `@` from frontend controller session start.
+
+**Files:**
+- `includes/functions.php`
+- `frontend/controllers/ArchiveController.php`
+- `frontend/controllers/SearchController.php`
+- `frontend/controllers/AuthorController.php`
+
+
+## 2026-01-18 Security/Static-Analysis Patch (v1.11-git-clean-r24)
+
+### Frontend controllers / كنترولرز الواجهة
+- Replaced view loader helper calls with direct `require` of constant view paths to eliminate false-positive "include injection" warnings from static analyzers.
+  **Files:** `frontend/controllers/ArchiveController.php`, `frontend/controllers/SearchController.php`, `frontend/controllers/AuthorController.php`
+
+### Core helpers / الدوال المساعدة
+- Removed unused generic include helpers (`gdy_require_view`, `safe_include`, `safe_include_return`, `load_view`) to prevent automated fixers from corrupting view/templates and to reduce "include injection" findings.
+  **Files:** `includes/functions.php`
