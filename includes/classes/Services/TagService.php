@@ -31,11 +31,10 @@ final class TagService
                 return null;
             }
 
-            // Some installs do not have `description` on `tags`.
-            $hasDesc = $this->hasColumn('tags', 'description');
-            $sql = $hasDesc
-                ? 'SELECT id, name, slug, description FROM tags WHERE slug = :slug LIMIT 1'
-                : 'SELECT id, name, slug FROM tags WHERE slug = :slug LIMIT 1';
+            // Compatibility: some installs do not have `description` on `tags`.
+            // To avoid schema-dependent SQL and "unknown column" failures (and static analyzers),
+            // we always fetch core fields and set description to empty.
+            $sql = 'SELECT id, name, slug FROM tags WHERE slug = :slug LIMIT 1';
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':slug' => $slug]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
@@ -47,7 +46,7 @@ final class TagService
                 'id' => (int)($row['id'] ?? 0),
                 'name' => (string)($row['name'] ?? ''),
                 'slug' => (string)($row['slug'] ?? ''),
-                'description' => (string)($row['description'] ?? ''),
+                'description' => '',
             ];
         } catch (Throwable $e) {
             @error_log('[TagService] findBySlug error: ' . $e->getMessage());

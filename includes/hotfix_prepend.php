@@ -18,7 +18,8 @@ if (function_exists('mb_internal_encoding')) {
 
 /**
  * Minimal safe wrappers needed by legacy code.
- * Implemented via call_user_func to avoid direct references in scanners.
+ * Implemented as direct calls. We explicitly guard against the deprecated /e
+ * modifier to avoid any string-eval behavior.
  */
 if (!function_exists('gdy_regex_replace')) {
     function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
@@ -32,11 +33,10 @@ if (!function_exists('gdy_regex_replace')) {
             }
         }
 
-        $fn = 'preg_replace';
         if ($count === null) {
-            return call_user_func($fn, $pattern, $replacement, $subject, $limit);
+            return preg_replace($pattern, $replacement, $subject, $limit);
         }
-        return call_user_func($fn, $pattern, $replacement, $subject, $limit, $count);
+        return preg_replace($pattern, $replacement, $subject, $limit, $count);
     }
 }
 
@@ -51,10 +51,9 @@ if (!function_exists('gdy_regex_replace_callback')) {
             }
         }
 
-        $fn = 'preg_replace_callback';
         if ($count === null) {
-            return call_user_func($fn, $pattern, $callback, $subject, $limit);
+            return preg_replace_callback($pattern, $callback, $subject, $limit);
         }
-        return call_user_func($fn, $pattern, $callback, $subject, $limit, $count);
+        return preg_replace_callback($pattern, $callback, $subject, $limit, $count);
     }
 }

@@ -45,8 +45,12 @@
         if(hide && hide !== '0'){
           img.style.display = 'none';
           var parentClass = img.getAttribute('data-gdy-hide-parent-class');
+          // Security hardening: only allow safe CSS class tokens.
           if(parentClass && img.parentElement){
-            img.parentElement.classList.add(parentClass);
+            parentClass = String(parentClass).trim();
+            if(/^[A-Za-z0-9_-]{1,64}$/.test(parentClass)){
+              img.parentElement.classList.add(parentClass);
+            }
           }
         }
       } catch(e) {}

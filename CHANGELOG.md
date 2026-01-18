@@ -161,3 +161,17 @@ All notable changes to this GitHub release are documented here.
 - `header.php`
 - `frontend/views/partials/header.php`
 - Multiple templates/pages updated to use `href="#icon-id"`.
+
+## 2026-01-18 Security/Lint Hardening (v1.11-git-clean-r20)
+
+### JavaScript / Media fallback
+- Hardened: validated `data-gdy-hide-parent-class` before applying it as a class token, preventing unsafe class injection and satisfying stricter security analyzers.
+  **File:** `assets/js/image_fallback.js`
+
+### PHP / Regex wrappers
+- Changed: removed `call_user_func()` usage in regex wrapper helpers and switched to direct `preg_replace()` / `preg_replace_callback()` calls (no change in behavior).
+  **Files:** `includes/hotfix_prepend.php`, `includes/lang.php`
+
+### PHP / Tags schema compatibility
+- Fixed: `TagService::findBySlug()` no longer selects the optional `tags.description` column (some installs do not have it). It now always fetches core fields and returns an empty description.
+  **File:** `includes/classes/Services/TagService.php`

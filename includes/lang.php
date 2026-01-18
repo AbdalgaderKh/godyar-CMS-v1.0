@@ -13,21 +13,19 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!function_exists('gdy_regex_replace')) {
     function gdy_regex_replace(string $pattern, string $replacement, $subject, int $limit = -1, ?int &$count = null)
     {
-        $fn = 'preg_replace';
         if ($count === null) {
-            return call_user_func($fn, $pattern, $replacement, $subject, $limit);
+            return preg_replace($pattern, $replacement, $subject, $limit);
         }
-        return call_user_func($fn, $pattern, $replacement, $subject, $limit, $count);
+        return preg_replace($pattern, $replacement, $subject, $limit, $count);
     }
 }
 if (!function_exists('gdy_regex_replace_callback')) {
     function gdy_regex_replace_callback(string $pattern, callable $callback, $subject, int $limit = -1, ?int &$count = null)
     {
-        $fn = 'preg_replace_callback';
         if ($count === null) {
-            return call_user_func($fn, $pattern, $callback, $subject, $limit);
+            return preg_replace_callback($pattern, $callback, $subject, $limit);
         }
-        return call_user_func($fn, $pattern, $callback, $subject, $limit, $count);
+        return preg_replace_callback($pattern, $callback, $subject, $limit, $count);
     }
 }
 
